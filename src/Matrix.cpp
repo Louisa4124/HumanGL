@@ -82,6 +82,16 @@ std::array<float, 16> Matrix::createTranslationZ(float z)
     return res;
 }
 
+std::array<float, 16> Matrix::createScale(float x, float y, float z)
+{
+    return {
+        x,    0.0f, 0.0f, 0.0f, 
+        0.0f, y,    0.0f, 0.0f, 
+        0.0f, 0.0f, z,    0.0f,  
+        0.0f, 0.0f, 0.0f, 1.0f 
+    };
+}
+
 std::array<float, 16> Matrix::multiply(const std::array<float, 16> &a,
                                        const std::array<float, 16> &b)
 {

@@ -19,6 +19,9 @@ public:
     static std::array<float, 16> createTranslationY(float x);
     // Genere une matrice de translation 4x4 sur de l'axe Z
     static std::array<float, 16> createTranslationZ(float x);
+
+    // matrice de mise a l'echelle
+    static std::array<float, 16> createScale(float x, float y, float z);
     
     static std::array<float, 16> multiply(const std::array<float, 16> &a,
         const std::array<float, 16> &b);
