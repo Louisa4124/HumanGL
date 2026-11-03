@@ -85,7 +85,8 @@ int main(int argc, char **argv)
         std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
         std::array<float, 16> armTranslate = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
         std::array<float, 16> armScale = Matrix::createScale(armScaleX, armScaleY, armScaleZ);
-        std::array<float, 16> armLocal = Matrix::multiply(armTranslate, armScale);
+        std::array<float, 16> armRotationX = Matrix::createRotationX(-45.0f);
+        std::array<float, 16> armLocal = Matrix::multiply(Matrix::multiply(armTranslate, armRotationX), armScale);
         std::array<float, 16> armModel = Matrix::multiply(torsoModel, armLocal);
         std::array<float, 16> mvpArm = Matrix::multiply(Matrix::multiply(projection, view), armModel);
         myShader.setMat4("u_MVP", mvpArm);
@@ -100,7 +101,8 @@ int main(int argc, char **argv)
         float forearmTranslateY = -0.5f - (forearmScaleY / 2.0f);
         std::array<float, 16> forearmTranslate = Matrix::createTranslationY(forearmTranslateY);
         std::array<float, 16> forearmScale = Matrix::createScale(forearmScaleX, forearmScaleY, forearmScaleZ);
-        std::array<float, 16> forearmLocal = Matrix::multiply(forearmTranslate, forearmScale);
+        std::array<float, 16> forearmRotationX = Matrix::createRotationX(0.0f);
+        std::array<float, 16> forearmLocal = Matrix::multiply(Matrix::multiply(forearmTranslate, forearmRotationX), forearmScale);
         std::array<float, 16> forearmModel = Matrix::multiply(armModel, forearmLocal);
         std::array<float, 16> mvpForearm = Matrix::multiply(Matrix::multiply(projection, view), forearmModel);
         myShader.setMat4("u_MVP", mvpForearm);
@@ -118,7 +120,8 @@ int main(int argc, char **argv)
         std::array<float, 16> arm2TranslateYMatrix = Matrix::createTranslationY(arm2TranslateY);
         std::array<float, 16> arm2Translate = Matrix::multiply(arm2TranslateYMatrix, arm2TranslateXMatrix);
         std::array<float, 16> arm2Scale = Matrix::createScale(arm2ScaleX, arm2ScaleY, arm2ScaleZ);
-        std::array<float, 16> arm2Local = Matrix::multiply(arm2Translate, arm2Scale);
+        std::array<float, 16> arm2RotationX = Matrix::createRotationX(-45.0f);
+        std::array<float, 16> arm2Local = Matrix::multiply(Matrix::multiply(arm2Translate, arm2RotationX), arm2Scale);
         std::array<float, 16> arm2Model = Matrix::multiply(torsoModel, arm2Local);
         std::array<float, 16> mvpArm2 = Matrix::multiply(Matrix::multiply(projection, view), arm2Model);
         myShader.setMat4("u_MVP", mvpArm2);
@@ -130,10 +133,11 @@ int main(int argc, char **argv)
         float forearm2ScaleX = 1.0f;
         float forearm2ScaleY = 1.0f;
         float forearm2ScaleZ = 1.0f;
-        float forearm2TranslateY = -0.5f  (forearm2ScaleY / 2.0f);
+        float forearm2TranslateY = -0.5f - (forearm2ScaleY / 2.0f);
         std::array<float, 16> forearm2Translate = Matrix::createTranslationY(forearm2TranslateY);
         std::array<float, 16> forearm2Scale = Matrix::createScale(forearm2ScaleX, forearm2ScaleY, forearm2ScaleZ);
-        std::array<float, 16> forearm2Local = Matrix::multiply(forearm2Translate, forearm2Scale);
+        std::array<float, 16> forearm2RotationX = Matrix::createRotationX(0.0f);
+        std::array<float, 16> forearm2Local = Matrix::multiply(Matrix::multiply(forearm2Translate, forearm2RotationX), forearm2Scale);
         std::array<float, 16> forearm2Model = Matrix::multiply(arm2Model, forearm2Local);
         std::array<float, 16> mvpForearm2 = Matrix::multiply(Matrix::multiply(projection, view), forearm2Model);
         myShader.setMat4("u_MVP", mvpForearm2);
