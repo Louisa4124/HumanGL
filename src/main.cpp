@@ -32,11 +32,13 @@ int main(int argc, char **argv)
     Shader myShader("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
 
     utils::Geometry torso("cube");
+    
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
     {
         utils::glClearColorHex(0x000000);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         myShader.use();
 
@@ -68,6 +70,24 @@ int main(int argc, char **argv)
         std::array<float, 16> headModel = Matrix::multiply(torsoModel, headLocal);
         std::array<float, 16> mvpHead = Matrix::multiply(Matrix::multiply(projection, view), headModel);
         myShader.setMat4("u_MVP", mvpHead);
+        myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
+
+        glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+        // le bras : enfant du torse
+        float armScaleX = 0.3f;
+        float armScaleY = 0.5f;
+        float armScaleZ = 0.3f;
+        float armTranslateX = 0.5f + (armScaleX / 2.0f);
+        float armTranslateY = 0.5f - (armScaleY / 2.0f); 
+        std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
+        std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
+        std::array<float, 16> armTranslate = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
+        std::array<float, 16> armScale = Matrix::createScale(armScaleX, armScaleY, armScaleZ);
+        std::array<float, 16> armLocal = Matrix::multiply(armTranslate, armScale);
+        std::array<float, 16> armModel = Matrix::multiply(torsoModel, armLocal);
+        std::array<float, 16> mvpArm = Matrix::multiply(Matrix::multiply(projection, view), armModel);
+        myShader.setMat4("u_MVP", mvpArm);
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
 
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
