@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <array>
 
 class Shader
 {
@@ -21,6 +22,7 @@ public:
     void setInt(const std::string &name, int value) const;
     void setFloat(const std::string &name, float value) const;
     void setVec4(const std::string &name, float x, float y, float z, float w) const;
+    void setMat4(const std::string &name, const std::array<float, 16> &mat) const;
 
 private:
     GLuint m_id;
