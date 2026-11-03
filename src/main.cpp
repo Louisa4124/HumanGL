@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
 #include "../include/Color.hpp"
 #include "../include/Geometry.hpp"
 #include "../include/Shader.hpp"
@@ -91,6 +92,55 @@ int main(int argc, char **argv)
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
 
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+        // l'avant-bras : enfant du bras
+        float forearmScaleX = 1.0f;
+        float forearmScaleY = 1.0f;
+        float forearmScaleZ = 1.0f;
+        float forearmTranslateY = -0.5f - (forearmScaleY / 2.0f);
+        std::array<float, 16> forearmTranslate = Matrix::createTranslationY(forearmTranslateY);
+        std::array<float, 16> forearmScale = Matrix::createScale(forearmScaleX, forearmScaleY, forearmScaleZ);
+        std::array<float, 16> forearmLocal = Matrix::multiply(forearmTranslate, forearmScale);
+        std::array<float, 16> forearmModel = Matrix::multiply(armModel, forearmLocal);
+        std::array<float, 16> mvpForearm = Matrix::multiply(Matrix::multiply(projection, view), forearmModel);
+        myShader.setMat4("u_MVP", mvpForearm);
+        myShader.setVec4("u_Color", 0.9f, 0.7f, 0.5f, 1.0f);
+
+        glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+        // 2e bras : enfant du torse
+        float arm2ScaleX = 0.3f;
+        float arm2ScaleY = 0.5f;
+        float arm2ScaleZ = 0.3f;
+        float arm2TranslateX = -0.5f - (arm2ScaleX / 2.0f);
+        float arm2TranslateY = 0.5f - (armScaleY / 2.0f); 
+        std::array<float, 16> arm2TranslateXMatrix = Matrix::createTranslationX(arm2TranslateX);
+        std::array<float, 16> arm2TranslateYMatrix = Matrix::createTranslationY(arm2TranslateY);
+        std::array<float, 16> arm2Translate = Matrix::multiply(arm2TranslateYMatrix, arm2TranslateXMatrix);
+        std::array<float, 16> arm2Scale = Matrix::createScale(arm2ScaleX, arm2ScaleY, arm2ScaleZ);
+        std::array<float, 16> arm2Local = Matrix::multiply(arm2Translate, arm2Scale);
+        std::array<float, 16> arm2Model = Matrix::multiply(torsoModel, arm2Local);
+        std::array<float, 16> mvpArm2 = Matrix::multiply(Matrix::multiply(projection, view), arm2Model);
+        myShader.setMat4("u_MVP", mvpArm2);
+        myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
+
+        glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+        // 2e avant-bras : enfant du 2e bras
+        float forearm2ScaleX = 1.0f;
+        float forearm2ScaleY = 1.0f;
+        float forearm2ScaleZ = 1.0f;
+        float forearm2TranslateY = -0.5f  (forearm2ScaleY / 2.0f);
+        std::array<float, 16> forearm2Translate = Matrix::createTranslationY(forearm2TranslateY);
+        std::array<float, 16> forearm2Scale = Matrix::createScale(forearm2ScaleX, forearm2ScaleY, forearm2ScaleZ);
+        std::array<float, 16> forearm2Local = Matrix::multiply(forearm2Translate, forearm2Scale);
+        std::array<float, 16> forearm2Model = Matrix::multiply(arm2Model, forearm2Local);
+        std::array<float, 16> mvpForearm2 = Matrix::multiply(Matrix::multiply(projection, view), forearm2Model);
+        myShader.setMat4("u_MVP", mvpForearm2);
+        myShader.setVec4("u_Color", 0.9f, 0.7f, 0.5f, 1.0f);
+
+        glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
+
         torso.unbind();
 
         glfwSwapBuffers(window);
