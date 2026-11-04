@@ -1,6 +1,19 @@
 #include "../include/Matrix.hpp"
-
 #include <cmath>
+#include <ostream>
+
+std::ostream& operator <<(std::ostream& out, const mat4& v)
+{
+    if (!v.empty())
+    {
+        out << "[ " << v.at(0) << ' ' << v.at(1) << ' ' << v.at(2) << ' ' << v.at(3) << std::endl;
+        out << "  " << v.at(4) << ' ' << v.at(5) << ' ' << v.at(6) << ' ' << v.at(7) << std::endl;
+        out << "  " << v.at(8) << ' ' << v.at(9) << ' ' << v.at(10) << ' ' << v.at(11) << std::endl;
+        out << "  " << v.at(12) << ' ' << v.at(13) << ' ' << v.at(14) << ' ' << v.at(15) << ']';
+        out << std::endl;
+    }
+    return out;
+}
 
 std::array<float, 16> Matrix::createRotationY(float angleDegrees)
 {

@@ -2,8 +2,10 @@
 #define MATRIX_HPP
 
 #include <array>
+#include <ostream>
 
 typedef std::array<float, 16> mat4;
+std::ostream& operator <<(std::ostream& out, const mat4& v);
 
 
 class Matrix

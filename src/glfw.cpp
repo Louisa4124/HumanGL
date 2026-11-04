@@ -10,11 +10,12 @@ rcode initGlfw(void)
 {
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     if (!glfwInit()) return KO;
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     return OK;
 }
 
@@ -39,13 +40,13 @@ GLFWwindow* createWindow(int width, int height, const char* name)
     {
         glfwTerminate();
         utils::err("Failed to create window.");
+
         return NULL;
     }
 
     glfwMakeContextCurrent(w);
     glfwSetInputMode(w, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwSetInputMode(w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     glfwSetKeyCallback(w, KeyHandler);
 
     return w;
@@ -59,5 +60,6 @@ rcode initGlew()
         std::cerr << "Failed to initialize GLEW: " << glewGetErrorString(r) << std::endl;
         return KO;
     }
+
     return OK;
 }

@@ -1,6 +1,8 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
+#include <ostream>
+
 typedef struct
 {
     float x;
@@ -21,5 +23,7 @@ typedef struct
     float z;
     float w;
 } vec4;
+
+std::ostream& operator <<(std::ostream& out, const vec4& v);
 
 #endif

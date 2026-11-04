@@ -1,4 +1,7 @@
 #include "../include/Shader.hpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
@@ -82,6 +85,9 @@ void Shader::setFloat(const std::string& name, float value) const
 
 void Shader::setVec4(const std::string& name, float x, float y, float z, float w) const
 { glUniform4f(glGetUniformLocation(m_id, name.c_str()), x, y, z, w); }
+
+void Shader::setVec4(const std::string& name, vec4 v) const
+{ glUniform4f(glGetUniformLocation(m_id, name.c_str()), v.x, v.y, v.z, v.w); }
 
 void Shader::setMat4(const std::string& name, const std::array<float, 16>& mat) const
 { glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, mat.data()); }

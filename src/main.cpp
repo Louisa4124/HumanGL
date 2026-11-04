@@ -3,11 +3,13 @@
 #include "../include/Matrix.hpp"
 #include "../include/Shader.hpp"
 #include "Object.hpp"
+#include "Vector.hpp"
 #include "glfw.h"
 #include "internal.h"
 #include "utils.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <assert.h>
 #include <cmath>
 #include <iostream>
 
@@ -41,6 +43,7 @@ int main(int argc, char** argv)
         std::array<float, 16> projection
             = Matrix::createPerspective(45.0f, WIDTH / HEIGHT, 0.1f, 100.0f);
         std::array<float, 16> view      = Matrix::createTranslationZ(-7.0f);   // on dezoom un peu !
+        mat4                  pv        = Matrix::multiply(projection, view);
         float                 angle     = 10.0f;
         float                 jumpCycle = std::fmod(glfwGetTime(), 2.5f);
         float                 jumpHeight   = 0.0f;
@@ -65,20 +68,10 @@ int main(int argc, char** argv)
             = Matrix::multiply(jumpTranslation, Matrix::multiply(modelRotation, modelScale));
 
         // le torse
-        float                 torsoScaleX    = 1.2f;
-        float                 torsoScaleY    = 2.0f;
-        float                 torsoScaleZ    = 0.8f;
-        std::array<float, 16> torsoTransform = modelRoot;
-        std::array<float, 16> torsoScale
-            = Matrix::createScale(torsoScaleX, torsoScaleY, torsoScaleZ);
-        std::array<float, 16> torsoModel = Matrix::multiply(torsoTransform, torsoScale);
-        std::array<float, 16> mvpTorse
-            = Matrix::multiply(Matrix::multiply(projection, view), torsoModel);
+        Object otto(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0f, 0.5f, 0.2f, 1.0f }, modelRoot, pv);
 
-        Object otto;
-
-        myShader.setMat4("u_MVP", mvpTorse);
-        myShader.setVec4("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
+        myShader.setMat4("u_MVP", otto.mvp);
+        myShader.setVec4("u_Color", otto.color);
 
         torso.bind();
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
@@ -87,7 +80,7 @@ int main(int argc, char** argv)
         float                 headScaleX           = 0.7f;
         float                 headScaleY           = 0.7f;
         float                 headScaleZ           = 0.7f;
-        float                 calculatedTranslateY = (torsoScaleY / 2) + (headScaleY / 2.0f);
+        float                 calculatedTranslateY = (otto.scale.y / 2) + (headScaleY / 2.0f);
         std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY);
         std::array<float, 16> headScale     = Matrix::createScale(
             headScaleX,
@@ -95,7 +88,7 @@ int main(int argc, char** argv)
             headScaleZ
         );   // mise a lechel : la tete plus petite
         std::array<float, 16> headLocal = Matrix::multiply(headTranslate, headScale);
-        std::array<float, 16> headModel = Matrix::multiply(torsoTransform, headLocal);
+        std::array<float, 16> headModel = Matrix::multiply(otto.transform, headLocal);
         std::array<float, 16> mvpHead
             = Matrix::multiply(Matrix::multiply(projection, view), headModel);
         myShader.setMat4("u_MVP", mvpHead);
@@ -107,8 +100,8 @@ int main(int argc, char** argv)
         float                 armScaleX           = 0.3f;
         float                 armScaleY           = 1.1f;
         float                 armScaleZ           = 0.3f;
-        float                 armTranslateX       = (torsoScaleX / 2.0f) + (armScaleX / 2.0f);
-        float                 armTranslateY       = (torsoScaleY / 2.0f);
+        float                 armTranslateX       = (otto.scale.z / 2.0f) + (armScaleX / 2.0f);
+        float                 armTranslateY       = (otto.scale.y / 2.0f);
         std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
         std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
         std::array<float, 16> armTranslate
@@ -121,7 +114,7 @@ int main(int argc, char** argv)
         std::array<float, 16> armRotationZ
             = Matrix::createRotationX((g_state_anim == SIX_SEVENNING) ? -25.0f : 0.0f);
         std::array<float, 16> armJoint = Matrix::multiply(
-            torsoTransform,
+            otto.transform,
             Matrix::multiply(armTranslate, Matrix::multiply(armRotationZ, armRotationX))
         );
         std::array<float, 16> armScaledAndRotated = Matrix::multiply(armOffset, armScale);
@@ -164,8 +157,8 @@ int main(int argc, char** argv)
         float                 arm2ScaleX           = 0.3f;
         float                 arm2ScaleY           = 1.1f;
         float                 arm2ScaleZ           = 0.3f;
-        float                 arm2TranslateX       = -(torsoScaleX / 2.0f) - (arm2ScaleX / 2.0f);
-        float                 arm2TranslateY       = (torsoScaleY / 2.0f);
+        float                 arm2TranslateX       = -(otto.scale.x / 2.0f) - (arm2ScaleX / 2.0f);
+        float                 arm2TranslateY       = (otto.scale.y / 2.0f);
         std::array<float, 16> arm2TranslateXMatrix = Matrix::createTranslationX(arm2TranslateX);
         std::array<float, 16> arm2TranslateYMatrix = Matrix::createTranslationY(arm2TranslateY);
         std::array<float, 16> arm2Translate
@@ -179,7 +172,7 @@ int main(int argc, char** argv)
         std::array<float, 16> arm2RotationZ
             = Matrix::createRotationX((g_state_anim == SIX_SEVENNING) ? -25.0f : 0.0f);
         std::array<float, 16> arm2Joint = Matrix::multiply(
-            torsoTransform,
+            otto.transform,
             Matrix::multiply(arm2Translate, Matrix::multiply(arm2RotationZ, arm2RotationX))
         );
         std::array<float, 16> arm2ScaledAndRotated = Matrix::multiply(arm2Offset, arm2Scale);
@@ -227,7 +220,7 @@ int main(int argc, char** argv)
         float                 legScaleY           = 0.9f;
         float                 legScaleZ           = 0.35f;
         float                 legTranslateX       = 0.3f;
-        float                 legTranslateY       = -(torsoScaleY / 2.0f);
+        float                 legTranslateY       = -(otto.scale.y / 2.0f);
         std::array<float, 16> legTranslateXMatrix = Matrix::createTranslationX(legTranslateX);
         std::array<float, 16> legTranslateYMatrix = Matrix::createTranslationY(legTranslateY);
         std::array<float, 16> legTranslate
@@ -240,7 +233,7 @@ int main(int argc, char** argv)
         float legHipAngle               = legSwingAngle - (jumpKneeBend * 0.4f);
         std::array<float, 16> legRotationX = Matrix::createRotationX(legHipAngle);
         std::array<float, 16> legJoint
-            = Matrix::multiply(torsoTransform, Matrix::multiply(legTranslate, legRotationX));
+            = Matrix::multiply(otto.transform, Matrix::multiply(legTranslate, legRotationX));
         std::array<float, 16> legScaledAndRotated = Matrix::multiply(legOffset, legScale);
         std::array<float, 16> legModel            = Matrix::multiply(legJoint, legScaledAndRotated);
         std::array<float, 16> mvpLeg
@@ -275,7 +268,7 @@ int main(int argc, char** argv)
         float                 leg2ScaleY           = 0.9f;
         float                 leg2ScaleZ           = 0.35f;
         float                 leg2TranslateX       = -0.3f;
-        float                 leg2TranslateY       = -(torsoScaleY / 2.0f);
+        float                 leg2TranslateY       = -(otto.scale.y / 2.0f);
         std::array<float, 16> leg2TranslateXMatrix = Matrix::createTranslationX(leg2TranslateX);
         std::array<float, 16> leg2TranslateYMatrix = Matrix::createTranslationY(leg2TranslateY);
         std::array<float, 16> leg2Translate
@@ -287,7 +280,7 @@ int main(int argc, char** argv)
         float                 leg2HipAngle  = leg2SwingAngle - (jumpKneeBend * 0.4f);
         std::array<float, 16> leg2RotationX = Matrix::createRotationX(leg2HipAngle);
         std::array<float, 16> leg2Joint
-            = Matrix::multiply(torsoTransform, Matrix::multiply(leg2Translate, leg2RotationX));
+            = Matrix::multiply(otto.transform, Matrix::multiply(leg2Translate, leg2RotationX));
         std::array<float, 16> leg2ScaledAndRotated = Matrix::multiply(leg2Offset, leg2Scale);
         std::array<float, 16> leg2Model = Matrix::multiply(leg2Joint, leg2ScaledAndRotated);
         std::array<float, 16> mvpLeg2

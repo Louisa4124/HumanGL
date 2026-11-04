@@ -6,15 +6,14 @@
 class Object
 {
   public:
-    vec3 scaleVec;
-    vec3 color;
+    vec3 scale;
+    vec4 color;
     mat4 transform;
-    mat4 scale;
     mat4 model;
     mat4 mvp;
 
     Object(void);
-    Object(vec3 scv, mat4 rootModel);
+    Object(vec3 scv, vec4 color, mat4 rootModel, mat4 pv);
     ~Object(void);
 };
 
