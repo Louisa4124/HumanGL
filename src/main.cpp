@@ -10,6 +10,9 @@
 #include "utils.h"
 #include "glfw.h"
 
+const float WIDTH = 800.0f;
+const float HEIGHT = 600.0f;
+
 int main(int argc, char **argv)
 {
     // rcode ret;
@@ -19,7 +22,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    window = initWindow(800, 600, "HumanGL");
+    window = initWindow(WIDTH, HEIGHT, "HumanGL");
     if (!window) {
         utils::err("Failed to create window.");
         return 1;
@@ -36,8 +39,9 @@ int main(int argc, char **argv)
 
     utils::Geometry torso("cube");
 
-
     glEnable(GL_DEPTH_TEST);
+
+    int animation = 1;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -47,7 +51,7 @@ int main(int argc, char **argv)
         myShader.use();
 
         // config commune a tout le model
-        std::array<float, 16> projection = Matrix::createPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
+        std::array<float, 16> projection = Matrix::createPerspective(45.0f, WIDTH / HEIGHT, 0.1f, 100.0f);
         std::array<float, 16> view = Matrix::createTranslationZ(-7.0f); // on dezoom un peu !
         float angle = glfwGetTime() * 10.0f;
         std::array<float, 16> modelRotation = Matrix::createRotationY(angle);
@@ -94,7 +98,7 @@ int main(int argc, char **argv)
         std::array<float, 16> armTranslate = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
         std::array<float, 16> armScale = Matrix::createScale(armScaleX, armScaleY, armScaleZ);
         std::array<float, 16> armOffset = Matrix::createTranslationY(-armScaleY / 2.0f);
-        float armSwingAngle = std::sin(glfwGetTime() * 5.0f) * 30.0f;
+        float armSwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
         std::array<float, 16> armRotationX = Matrix::createRotationX(armSwingAngle);
         std::array<float, 16> armRotAndOffset = Matrix::multiply(armRotationX, armOffset);
         std::array<float, 16> armScaledAndRotated = Matrix::multiply(armRotAndOffset, armScale);
@@ -134,7 +138,7 @@ int main(int argc, char **argv)
         std::array<float, 16> arm2Translate = Matrix::multiply(arm2TranslateYMatrix, arm2TranslateXMatrix);
         std::array<float, 16> arm2Scale = Matrix::createScale(arm2ScaleX, arm2ScaleY, arm2ScaleZ);
         std::array<float, 16> arm2Offset = Matrix::createTranslationY(-arm2ScaleY / 2.0f);
-        float arm2SwingAngle = std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f;
+        float arm2SwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f) : 0.0f;
         std::array<float, 16> arm2RotationX = Matrix::createRotationX(arm2SwingAngle);
         std::array<float, 16> arm2RotAndOffset = Matrix::multiply(arm2RotationX, arm2Offset);
         std::array<float, 16> arm2ScaledAndRotated = Matrix::multiply(arm2RotAndOffset, arm2Scale);
@@ -174,7 +178,7 @@ int main(int argc, char **argv)
         std::array<float, 16> legTranslate = Matrix::multiply(legTranslateYMatrix, legTranslateXMatrix);
         std::array<float, 16> legScale = Matrix::createScale(legScaleX, legScaleY, legScaleZ);
         std::array<float, 16> legOffset = Matrix::createTranslationY(-legScaleY / 2.0f);
-        float legSwingAngle = std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f;
+        float legSwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f) : 0.0f;
         std::array<float, 16> legRotationX = Matrix::createRotationX(legSwingAngle);
         std::array<float, 16> legRotAndOffset = Matrix::multiply(legRotationX, legOffset);
         std::array<float, 16> legScaledAndRotated = Matrix::multiply(legRotAndOffset, legScale);
@@ -214,7 +218,7 @@ int main(int argc, char **argv)
         std::array<float, 16> leg2Translate = Matrix::multiply(leg2TranslateYMatrix, leg2TranslateXMatrix);
         std::array<float, 16> leg2Scale = Matrix::createScale(leg2ScaleX, leg2ScaleY, leg2ScaleZ);
         std::array<float, 16> leg2Offset = Matrix::createTranslationY(-leg2ScaleY / 2.0f);
-        float leg2SwingAngle = std::sin(glfwGetTime() * 5.0f) * 30.0f;
+        float leg2SwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
         std::array<float, 16> leg2RotationX = Matrix::createRotationX(leg2SwingAngle);
         std::array<float, 16> leg2RotAndOffset = Matrix::multiply(leg2RotationX, leg2Offset);
         std::array<float, 16> leg2ScaledAndRotated = Matrix::multiply(leg2RotAndOffset, leg2Scale);
