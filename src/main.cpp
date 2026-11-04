@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
         // le torse
         float torsoScaleX = 1.2f;
-        float torsoScaleY = 1.8f;
+        float torsoScaleY = 2.0f;
         float torsoScaleZ = 0.8f;
         std::array<float, 16> torsoTransform = modelRoot;
         std::array<float, 16> torsoScale = Matrix::createScale(torsoScaleX, torsoScaleY, torsoScaleZ);
@@ -85,8 +85,8 @@ int main(int argc, char **argv)
         float armScaleX = 0.3f;
         float armScaleY = 1.1f;
         float armScaleZ = 0.3f;
-        float armTranslateX = (torsoScaleX / 2) + (armScaleX / 2.0f);
-        float armTranslateY = (armScaleY / 2.0f) - (armScaleY / 10.0f);
+        float armTranslateX = (torsoScaleX / 2.0f) + (armScaleX / 2.0f);
+        float armTranslateY = (torsoScaleY / 2.0f) - (armScaleY / 2.0f);
         std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
         std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
         std::array<float, 16> armTranslate = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
         float arm2ScaleY = 1.1f;
         float arm2ScaleZ = 0.3f;
         float arm2TranslateX = -(torsoScaleX / 2.0f) - (arm2ScaleX / 2.0f);
-        float arm2TranslateY = (armScaleY / 2.0f) - (armScaleY / 10.0f);
+        float arm2TranslateY = (torsoScaleY / 2.0f) - (arm2ScaleY / 2.0f);
         std::array<float, 16> arm2TranslateXMatrix = Matrix::createTranslationX(arm2TranslateX);
         std::array<float, 16> arm2TranslateYMatrix = Matrix::createTranslationY(arm2TranslateY);
         std::array<float, 16> arm2Translate = Matrix::multiply(arm2TranslateYMatrix, arm2TranslateXMatrix);
