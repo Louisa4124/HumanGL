@@ -1,3 +1,4 @@
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -100,10 +101,9 @@ int main(int argc, char **argv)
         std::array<float, 16> armOffset = Matrix::createTranslationY(-armScaleY / 2.0f);
         float armSwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
         std::array<float, 16> armRotationX = Matrix::createRotationX(armSwingAngle);
-        std::array<float, 16> armRotAndOffset = Matrix::multiply(armRotationX, armOffset);
-        std::array<float, 16> armScaledAndRotated = Matrix::multiply(armRotAndOffset, armScale);
-        std::array<float, 16> armLocal = Matrix::multiply(armTranslate, armScaledAndRotated);
-        std::array<float, 16> armModel = Matrix::multiply(torsoTransform, armLocal);
+        std::array<float, 16> armJoint = Matrix::multiply(torsoTransform, Matrix::multiply(armTranslate, armRotationX));
+        std::array<float, 16> armScaledAndRotated = Matrix::multiply(armOffset, armScale);
+        std::array<float, 16> armModel = Matrix::multiply(armJoint, armScaledAndRotated);
         std::array<float, 16> mvpArm = Matrix::multiply(Matrix::multiply(projection, view), armModel);
         myShader.setMat4("u_MVP", mvpArm);
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
@@ -111,16 +111,17 @@ int main(int argc, char **argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // l'avant-bras : enfant du bras
-        float forearmScaleX = 1.0f;
-        float forearmScaleY = 1.0f;
-        float forearmScaleZ = 1.0f;
-        float forearmTranslateY = -0.5f - (forearmScaleY / 2.0f);
+        float forearmScaleX = armScaleX;
+        float forearmScaleY = armScaleY;
+        float forearmScaleZ = armScaleZ;
+        float forearmTranslateY = -forearmScaleY / 2.0f;
         std::array<float, 16> forearmTranslate = Matrix::createTranslationY(forearmTranslateY);
+        std::array<float, 16> elbowTranslate = Matrix::createTranslationY(-armScaleY);
+        std::array<float, 16> elbowJoint = Matrix::multiply(armJoint, elbowTranslate);
         std::array<float, 16> forearmScale = Matrix::createScale(forearmScaleX, forearmScaleY, forearmScaleZ);
-        std::array<float, 16> forearmRotationX = Matrix::createRotationX(0.0f);
-        std::array<float, 16> forearmScaledAndRotated = Matrix::multiply(forearmRotationX, forearmScale);
-        std::array<float, 16> forearmLocal = Matrix::multiply(forearmTranslate, forearmScaledAndRotated);
-        std::array<float, 16> forearmModel = Matrix::multiply(armModel, forearmLocal);
+        std::array<float, 16> forearmRotationX = Matrix::createRotationX(-20.0f);
+        std::array<float, 16> forearmScaledAndRotated = Matrix::multiply(forearmRotationX, Matrix::multiply(forearmTranslate, forearmScale));
+        std::array<float, 16> forearmModel = Matrix::multiply(elbowJoint, forearmScaledAndRotated);
         std::array<float, 16> mvpForearm = Matrix::multiply(Matrix::multiply(projection, view), forearmModel);
         myShader.setMat4("u_MVP", mvpForearm);
         myShader.setVec4("u_Color", 0.9f, 0.7f, 0.5f, 1.0f);
@@ -140,10 +141,9 @@ int main(int argc, char **argv)
         std::array<float, 16> arm2Offset = Matrix::createTranslationY(-arm2ScaleY / 2.0f);
         float arm2SwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f) : 0.0f;
         std::array<float, 16> arm2RotationX = Matrix::createRotationX(arm2SwingAngle);
-        std::array<float, 16> arm2RotAndOffset = Matrix::multiply(arm2RotationX, arm2Offset);
-        std::array<float, 16> arm2ScaledAndRotated = Matrix::multiply(arm2RotAndOffset, arm2Scale);
-        std::array<float, 16> arm2Local = Matrix::multiply(arm2Translate, arm2ScaledAndRotated);
-        std::array<float, 16> arm2Model = Matrix::multiply(torsoTransform, arm2Local);
+        std::array<float, 16> arm2Joint = Matrix::multiply(torsoTransform, Matrix::multiply(arm2Translate, arm2RotationX));
+        std::array<float, 16> arm2ScaledAndRotated = Matrix::multiply(arm2Offset, arm2Scale);
+        std::array<float, 16> arm2Model = Matrix::multiply(arm2Joint, arm2ScaledAndRotated);
         std::array<float, 16> mvpArm2 = Matrix::multiply(Matrix::multiply(projection, view), arm2Model);
         myShader.setMat4("u_MVP", mvpArm2);
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
@@ -151,16 +151,17 @@ int main(int argc, char **argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // 2e avant-bras : enfant du 2e bras
-        float forearm2ScaleX = 1.0f;
-        float forearm2ScaleY = 1.0f;
-        float forearm2ScaleZ = 1.0f;
-        float forearm2TranslateY = -0.5f - (forearm2ScaleY / 2.0f);
+        float forearm2ScaleX = arm2ScaleX;
+        float forearm2ScaleY = arm2ScaleY;
+        float forearm2ScaleZ = arm2ScaleZ;
+        float forearm2TranslateY = -forearm2ScaleY / 2.0f;
         std::array<float, 16> forearm2Translate = Matrix::createTranslationY(forearm2TranslateY);
+        std::array<float, 16> elbow2Translate = Matrix::createTranslationY(-arm2ScaleY);
+        std::array<float, 16> elbow2Joint = Matrix::multiply(arm2Joint, elbow2Translate);
         std::array<float, 16> forearm2Scale = Matrix::createScale(forearm2ScaleX, forearm2ScaleY, forearm2ScaleZ);
-        std::array<float, 16> forearm2RotationX = Matrix::createRotationX(0.0f);
-        std::array<float, 16> forearm2ScaledAndRotated = Matrix::multiply(forearm2RotationX, forearm2Scale);
-        std::array<float, 16> forearm2Local = Matrix::multiply(forearm2Translate, forearm2ScaledAndRotated);
-        std::array<float, 16> forearm2Model = Matrix::multiply(arm2Model, forearm2Local);
+        std::array<float, 16> forearm2RotationX = Matrix::createRotationX(-20.0f);
+        std::array<float, 16> forearm2ScaledAndRotated = Matrix::multiply(forearm2RotationX, Matrix::multiply(forearm2Translate, forearm2Scale));
+        std::array<float, 16> forearm2Model = Matrix::multiply(elbow2Joint, forearm2ScaledAndRotated);
         std::array<float, 16> mvpForearm2 = Matrix::multiply(Matrix::multiply(projection, view), forearm2Model);
         myShader.setMat4("u_MVP", mvpForearm2);
         myShader.setVec4("u_Color", 0.9f, 0.7f, 0.5f, 1.0f);
