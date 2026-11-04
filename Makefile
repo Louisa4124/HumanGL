@@ -33,6 +33,11 @@ re: fclean all
 
 .PHONY: all clean fclean re
 
+run: $(NAME)
+	./$(NAME)
 
-e: 
+rerun: re
+	./$(NAME)
+
+e:
 	@echo "src : $(SRC)"

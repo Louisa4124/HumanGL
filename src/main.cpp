@@ -6,22 +6,24 @@
 #include "../include/Geometry.hpp"
 #include "../include/Shader.hpp"
 #include "../include/Matrix.hpp"
+#include "internal.h"
+#include "utils.h"
+#include "glfw.h"
 
 int main(int argc, char **argv)
 {
-    if (!glfwInit())
-        return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // rcode ret;
+    GLFWwindow *window ;
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "HumanGL", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
+    if (initGlfw() != OK) {
+        return 1;
     }
-    glfwMakeContextCurrent(window);
+
+    window = initWindow(800, 600, "HumanGL");
+    if (!window) {
+        utils::err("Failed to create window.");
+        return 1;
+    }
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -33,6 +35,7 @@ int main(int argc, char **argv)
     Shader myShader("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
 
     utils::Geometry torso("cube");
+
 
     glEnable(GL_DEPTH_TEST);
 
