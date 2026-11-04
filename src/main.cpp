@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     glEnable(GL_DEPTH_TEST);
 
-    int animation = 1;
+    int animation = 2;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -55,9 +55,26 @@ int main(int argc, char **argv)
         std::array<float, 16> projection = Matrix::createPerspective(45.0f, WIDTH / HEIGHT, 0.1f, 100.0f);
         std::array<float, 16> view = Matrix::createTranslationZ(-7.0f); // on dezoom un peu !
         float angle = glfwGetTime() * 10.0f;
+        float jumpCycle = std::fmod(glfwGetTime(), 2.5f);
+        float jumpHeight = 0.0f;
+        float jumpKneeBend = 0.0f;
+
+        if (animation == 2) {
+            if (jumpCycle < 0.5f)
+                jumpKneeBend = 40.0f * (jumpCycle / 0.5f);
+            else if (jumpCycle < 0.75f)
+                jumpKneeBend = 40.0f * (1.0f - (jumpCycle - 0.5f) / 0.25f);
+
+            if (jumpCycle >= 0.5f && jumpCycle < 1.5f) {
+                float jumpProgress = (jumpCycle - 0.5f) / 1.0f;
+                jumpHeight = 1.4f * 4.0f * jumpProgress * (1.0f - jumpProgress);
+            }
+        }
+
         std::array<float, 16> modelRotation = Matrix::createRotationY(angle);
         std::array<float, 16> modelScale = Matrix::createScale(1.0f, 1.0f, 1.0f);
-        std::array<float, 16> modelRoot = Matrix::multiply(modelRotation, modelScale);
+        std::array<float, 16> jumpTranslation = Matrix::createTranslationY(jumpHeight);
+        std::array<float, 16> modelRoot = Matrix::multiply(jumpTranslation, Matrix::multiply(modelRotation, modelScale));
 
         // le torse
         float torsoScaleX = 1.2f;
@@ -180,11 +197,11 @@ int main(int argc, char **argv)
         std::array<float, 16> legScale = Matrix::createScale(legScaleX, legScaleY, legScaleZ);
         std::array<float, 16> legOffset = Matrix::createTranslationY(-legScaleY / 2.0f);
         float legSwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f) : 0.0f;
-        std::array<float, 16> legRotationX = Matrix::createRotationX(legSwingAngle);
-        std::array<float, 16> legRotAndOffset = Matrix::multiply(legRotationX, legOffset);
-        std::array<float, 16> legScaledAndRotated = Matrix::multiply(legRotAndOffset, legScale);
-        std::array<float, 16> legLocal = Matrix::multiply(legTranslate, legScaledAndRotated);
-        std::array<float, 16> legModel = Matrix::multiply(torsoTransform, legLocal);
+        float legHipAngle = legSwingAngle - (jumpKneeBend * 0.4f);
+        std::array<float, 16> legRotationX = Matrix::createRotationX(legHipAngle);
+        std::array<float, 16> legJoint = Matrix::multiply(torsoTransform, Matrix::multiply(legTranslate, legRotationX));
+        std::array<float, 16> legScaledAndRotated = Matrix::multiply(legOffset, legScale);
+        std::array<float, 16> legModel = Matrix::multiply(legJoint, legScaledAndRotated);
         std::array<float, 16> mvpLeg = Matrix::multiply(Matrix::multiply(projection, view), legModel);
         myShader.setMat4("u_MVP", mvpLeg);
         myShader.setVec4("u_Color", 0.2f, 0.4f, 0.8f, 1.0f);
@@ -192,16 +209,17 @@ int main(int argc, char **argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // 1er bas de jambe : enfant du haut de jambe
-        float shinScaleX = 1.0f;
+        float shinScaleX = legScaleX;
         float shinScaleY = 1.0f;
-        float shinScaleZ = 1.0f;
-        float shinTranslateY = -0.5f - (shinScaleY / 2.0f);
+        float shinScaleZ = legScaleZ;
+        float shinTranslateY = -shinScaleY / 2.0f;
         std::array<float, 16> shinTranslate = Matrix::createTranslationY(shinTranslateY);
+        std::array<float, 16> kneeTranslate = Matrix::createTranslationY(-legScaleY);
+        std::array<float, 16> kneeJoint = Matrix::multiply(legJoint, kneeTranslate);
         std::array<float, 16> shinScale = Matrix::createScale(shinScaleX, shinScaleY, shinScaleZ);
-        std::array<float, 16> shinRotationX = Matrix::createRotationX(0.0f);
-        std::array<float, 16> shinScaledAndRotated = Matrix::multiply(shinRotationX, shinScale);
-        std::array<float, 16> shinLocal = Matrix::multiply(shinTranslate, shinScaledAndRotated);
-        std::array<float, 16> shinModel = Matrix::multiply(legModel, shinLocal);
+        std::array<float, 16> shinRotationX = Matrix::createRotationX(jumpKneeBend * 0.8f);
+        std::array<float, 16> shinScaledAndRotated = Matrix::multiply(shinRotationX, Matrix::multiply(shinTranslate, shinScale));
+        std::array<float, 16> shinModel = Matrix::multiply(kneeJoint, shinScaledAndRotated);
         std::array<float, 16> mvpShin = Matrix::multiply(Matrix::multiply(projection, view), shinModel);
         myShader.setMat4("u_MVP", mvpShin);
         myShader.setVec4("u_Color", 0.1f, 0.3f, 0.7f, 1.0f);
@@ -220,11 +238,11 @@ int main(int argc, char **argv)
         std::array<float, 16> leg2Scale = Matrix::createScale(leg2ScaleX, leg2ScaleY, leg2ScaleZ);
         std::array<float, 16> leg2Offset = Matrix::createTranslationY(-leg2ScaleY / 2.0f);
         float leg2SwingAngle = (animation == 1) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
-        std::array<float, 16> leg2RotationX = Matrix::createRotationX(leg2SwingAngle);
-        std::array<float, 16> leg2RotAndOffset = Matrix::multiply(leg2RotationX, leg2Offset);
-        std::array<float, 16> leg2ScaledAndRotated = Matrix::multiply(leg2RotAndOffset, leg2Scale);
-        std::array<float, 16> leg2Local = Matrix::multiply(leg2Translate, leg2ScaledAndRotated);
-        std::array<float, 16> leg2Model = Matrix::multiply(torsoTransform, leg2Local);
+        float leg2HipAngle = leg2SwingAngle - (jumpKneeBend * 0.4f);
+        std::array<float, 16> leg2RotationX = Matrix::createRotationX(leg2HipAngle);
+        std::array<float, 16> leg2Joint = Matrix::multiply(torsoTransform, Matrix::multiply(leg2Translate, leg2RotationX));
+        std::array<float, 16> leg2ScaledAndRotated = Matrix::multiply(leg2Offset, leg2Scale);
+        std::array<float, 16> leg2Model = Matrix::multiply(leg2Joint, leg2ScaledAndRotated);
         std::array<float, 16> mvpLeg2 = Matrix::multiply(Matrix::multiply(projection, view), leg2Model);
         myShader.setMat4("u_MVP", mvpLeg2);
         myShader.setVec4("u_Color", 0.2f, 0.4f, 0.8f, 1.0f);
@@ -232,16 +250,17 @@ int main(int argc, char **argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // 2e bas de jambe : enfant du 2e haut de jambe
-        float shin2ScaleX = 1.0f;
+        float shin2ScaleX = leg2ScaleX;
         float shin2ScaleY = 1.0f;
-        float shin2ScaleZ = 1.0f;
-        float shin2TranslateY = -0.5f - (shin2ScaleY / 2.0f);
+        float shin2ScaleZ = leg2ScaleZ;
+        float shin2TranslateY = -shin2ScaleY / 2.0f;
         std::array<float, 16> shin2Translate = Matrix::createTranslationY(shin2TranslateY);
+        std::array<float, 16> knee2Translate = Matrix::createTranslationY(-leg2ScaleY);
+        std::array<float, 16> knee2Joint = Matrix::multiply(leg2Joint, knee2Translate);
         std::array<float, 16> shin2Scale = Matrix::createScale(shin2ScaleX, shin2ScaleY, shin2ScaleZ);
-        std::array<float, 16> shin2RotationX = Matrix::createRotationX(0.0f);
-        std::array<float, 16> shin2ScaledAndRotated = Matrix::multiply(shin2RotationX, shin2Scale);
-        std::array<float, 16> shin2Local = Matrix::multiply(shin2Translate, shin2ScaledAndRotated);
-        std::array<float, 16> shin2Model = Matrix::multiply(leg2Model, shin2Local);
+        std::array<float, 16> shin2RotationX = Matrix::createRotationX(jumpKneeBend * 0.8f);
+        std::array<float, 16> shin2ScaledAndRotated = Matrix::multiply(shin2RotationX, Matrix::multiply(shin2Translate, shin2Scale));
+        std::array<float, 16> shin2Model = Matrix::multiply(knee2Joint, shin2ScaledAndRotated);
         std::array<float, 16> mvpShin2 = Matrix::multiply(Matrix::multiply(projection, view), shin2Model);
         myShader.setMat4("u_MVP", mvpShin2);
         myShader.setVec4("u_Color", 0.1f, 0.3f, 0.7f, 1.0f);
