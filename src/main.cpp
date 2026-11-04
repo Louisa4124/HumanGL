@@ -69,10 +69,12 @@ int main(int argc, char **argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // la tete : enfant du torse
-        float headScaleY = 0.6f;
+        float headScaleX = 0.7f;
+        float headScaleY = 0.7f;
+        float headScaleZ = 0.7f;
         float calculatedTranslateY = (torsoScaleY / 2) + (headScaleY / 2.0f);
         std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY);
-        std::array<float, 16> headScale = Matrix::createScale(0.6f, headScaleY, 0.6f); // mise a lechel : la tete plus petite
+        std::array<float, 16> headScale = Matrix::createScale(headScaleX, headScaleY, headScaleZ); // mise a lechel : la tete plus petite
         std::array<float, 16> headLocal = Matrix::multiply(headTranslate, headScale);
         std::array<float, 16> headModel = Matrix::multiply(torsoTransform, headLocal);
         std::array<float, 16> mvpHead = Matrix::multiply(Matrix::multiply(projection, view), headModel);
