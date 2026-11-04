@@ -29,7 +29,7 @@ IndentWidth: 4
 ColumnLimit: 100
 ContinuationIndentWidth: 4
 UseTab: Never # ForIdentation
-IndentAccessModifiers: true
+IndentAccessModifiers: false
 IndentCaseBlocks: true
 IndentCaseLabels: true
 IndentExportBlock: true

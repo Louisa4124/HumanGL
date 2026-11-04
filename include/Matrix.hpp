@@ -3,6 +3,11 @@
 
 #include <array>
 
+typedef struct {
+  float data[16];
+
+} mat4;
+
 class Matrix
 {
 public:
@@ -12,7 +17,7 @@ public:
     static std::array<float, 16> createRotationX(float angleDeg);
     // Genere une matrice de rotation 4x4 autour de l'axe Z
     static std::array<float, 16> createRotationZ(float angleDeg);
-    
+
     // Genere une matrice de translation 4x4 sur de l'axe X
     static std::array<float, 16> createTranslationX(float x);
     // Genere une matrice de translation 4x4 sur de l'axe Y
@@ -22,13 +27,13 @@ public:
 
     // matrice de mise a l'echelle
     static std::array<float, 16> createScale(float x, float y, float z);
-    
+
     static std::array<float, 16> multiply(const std::array<float, 16> &a,
         const std::array<float, 16> &b);
-        
-    static std::array<float, 16> createPerspective( float fovDegrees, 
-                                                    float aspect, 
-                                                    float nearPlane, 
+
+    static std::array<float, 16> createPerspective( float fovDegrees,
+                                                    float aspect,
+                                                    float nearPlane,
                                                     float farPlane);
 };
 
