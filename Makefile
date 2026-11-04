@@ -2,11 +2,11 @@ NAME        = HumanGL
 CC          = g++
 CFLAGS      = -Wall -std=c++17
 # CFLAGS      = -Wall -Wextra -Werror -std=c++17
-IFLAGS		= -Iinclude
+IFLAGS      = -Iinclude
 
 SRC_DIR     = src
 INC_DIR     = include
-OBJ_DIR     = obj
+OBJ_DIR     = .obj
 
 SRC         = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ         = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
@@ -31,12 +31,9 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re run rerun
+.PHONY: all clean fclean re run format
 
 run: $(NAME)
-	./$(NAME)
-
-rerun: re
 	./$(NAME)
 
 format:

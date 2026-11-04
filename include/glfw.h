@@ -1,9 +1,11 @@
 #ifndef GLFW_H
 #define GLFW_H
-#include <GLFW/glfw3.h>
 #include "internal.h"
+#include <GLFW/glfw3.h>
 
 rcode       initGlfw(void);
-GLFWwindow* initWindow(int width, int height, const char* name);
+GLFWwindow* createWindow(int width, int height, const char* name);
+
+rcode initGlew();
 
 #endif

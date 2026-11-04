@@ -18,24 +18,11 @@ e_state g_state_anim = IDLE;
 
 int main(int argc, char** argv)
 {
-    // rcode ret;
     GLFWwindow* window;
 
     if (initGlfw() != OK) { return 1; }
-
-    window = initWindow(WIDTH, HEIGHT, "HumanGL");
-    if (!window)
-    {
-        utils::err("Failed to create window.");
-        return 1;
-    }
-
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK)
-    {
-        std::cerr << "Failed to initialize GLEW\n";
-        return -1;
-    }
+    if (!(window = createWindow(WIDTH, HEIGHT, "HumanGL"))) { return 1; }
+    if (initGlew() != OK) { return 1; }
 
     Shader myShader("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
 

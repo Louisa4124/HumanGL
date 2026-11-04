@@ -1,13 +1,17 @@
 #include "internal.h"
+#include "utils.h"
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 extern int g_state_anim;
 
 rcode initGlfw(void)
 {
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     if (!glfwInit()) return KO;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -26,7 +30,7 @@ void KeyHandler(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
 }
 
-GLFWwindow* initWindow(int width, int height, const char* name)
+GLFWwindow* createWindow(int width, int height, const char* name)
 {
     GLFWwindow* w;
 
@@ -34,6 +38,7 @@ GLFWwindow* initWindow(int width, int height, const char* name)
     if (!w)
     {
         glfwTerminate();
+        utils::err("Failed to create window.");
         return NULL;
     }
 
@@ -44,4 +49,15 @@ GLFWwindow* initWindow(int width, int height, const char* name)
     glfwSetKeyCallback(w, KeyHandler);
 
     return w;
+}
+
+rcode initGlew()
+{
+    glewExperimental = GL_TRUE;
+    if (auto r = glewInit() != GLEW_OK)
+    {
+        std::cerr << "Failed to initialize GLEW: " << glewGetErrorString(r) << std::endl;
+        return KO;
+    }
+    return OK;
 }
