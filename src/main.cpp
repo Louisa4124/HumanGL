@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     Shader myShader("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
 
     utils::Geometry torso("cube");
-    
+
     glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
@@ -53,8 +53,9 @@ int main(int argc, char **argv)
 
         // le torse
         float torsoScaleY = 2.0f;
+        std::array<float, 16> torsoTransform = modelRoot;
         std::array<float, 16> torsoScale = Matrix::createScale(1.2f, torsoScaleY, 0.6f);
-        std::array<float, 16> torsoModel = Matrix::multiply(modelRoot, torsoScale); 
+        std::array<float, 16> torsoModel = Matrix::multiply(torsoTransform, torsoScale);
         std::array<float, 16> mvpTorse = Matrix::multiply(Matrix::multiply(projection, view), torsoModel);
         myShader.setMat4("u_MVP", mvpTorse);
         myShader.setVec4("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
@@ -63,12 +64,12 @@ int main(int argc, char **argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // la tete : enfant du torse
-        float headScaleY = 0.4f;
-        float calculatedTranslateY = (1.0f / torsoScaleY) + (headScaleY / 2.0f);
-        std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY); 
-        std::array<float, 16> headScale = Matrix::createScale(0.6f, headScaleY, 0.6f);// mise a lechel : la tete plus petite  
+        float headScaleY = 0.6f;
+        float calculatedTranslateY = 1.0f + (headScaleY / 2.0f);
+        std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY);
+        std::array<float, 16> headScale = Matrix::createScale(0.6f, headScaleY, 0.6f); // mise a lechel : la tete plus petite
         std::array<float, 16> headLocal = Matrix::multiply(headTranslate, headScale);
-        std::array<float, 16> headModel = Matrix::multiply(torsoModel, headLocal);
+        std::array<float, 16> headModel = Matrix::multiply(torsoTransform, headLocal);
         std::array<float, 16> mvpHead = Matrix::multiply(Matrix::multiply(projection, view), headModel);
         myShader.setMat4("u_MVP", mvpHead);
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
@@ -77,17 +78,18 @@ int main(int argc, char **argv)
 
         // le bras : enfant du torse
         float armScaleX = 0.3f;
-        float armScaleY = 0.5f;
+        float armScaleY = 0.8f;
         float armScaleZ = 0.3f;
-        float armTranslateX = 0.5f + (armScaleX / 2.0f);
-        float armTranslateY = 0.5f - (armScaleY / 2.0f); 
+        float armTranslateX = 0.6f + (armScaleX / 2.0f);
+        float armTranslateY = (armScaleY / 2.0f);
         std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
         std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
         std::array<float, 16> armTranslate = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
         std::array<float, 16> armScale = Matrix::createScale(armScaleX, armScaleY, armScaleZ);
-        std::array<float, 16> armRotationX = Matrix::createRotationX(-45.0f);
-        std::array<float, 16> armLocal = Matrix::multiply(Matrix::multiply(armTranslate, armRotationX), armScale);
-        std::array<float, 16> armModel = Matrix::multiply(torsoModel, armLocal);
+        std::array<float, 16> armRotationX = Matrix::createRotationX(0.0f);
+        std::array<float, 16> armScaledAndRotated = Matrix::multiply(armRotationX, armScale);
+        std::array<float, 16> armLocal = Matrix::multiply(armTranslate, armScaledAndRotated);
+        std::array<float, 16> armModel = Matrix::multiply(torsoTransform, armLocal);
         std::array<float, 16> mvpArm = Matrix::multiply(Matrix::multiply(projection, view), armModel);
         myShader.setMat4("u_MVP", mvpArm);
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
@@ -102,7 +104,8 @@ int main(int argc, char **argv)
         std::array<float, 16> forearmTranslate = Matrix::createTranslationY(forearmTranslateY);
         std::array<float, 16> forearmScale = Matrix::createScale(forearmScaleX, forearmScaleY, forearmScaleZ);
         std::array<float, 16> forearmRotationX = Matrix::createRotationX(0.0f);
-        std::array<float, 16> forearmLocal = Matrix::multiply(Matrix::multiply(forearmTranslate, forearmRotationX), forearmScale);
+        std::array<float, 16> forearmScaledAndRotated = Matrix::multiply(forearmRotationX, forearmScale);
+        std::array<float, 16> forearmLocal = Matrix::multiply(forearmTranslate, forearmScaledAndRotated);
         std::array<float, 16> forearmModel = Matrix::multiply(armModel, forearmLocal);
         std::array<float, 16> mvpForearm = Matrix::multiply(Matrix::multiply(projection, view), forearmModel);
         myShader.setMat4("u_MVP", mvpForearm);
@@ -112,17 +115,18 @@ int main(int argc, char **argv)
 
         // 2e bras : enfant du torse
         float arm2ScaleX = 0.3f;
-        float arm2ScaleY = 0.5f;
+        float arm2ScaleY = 0.8f;
         float arm2ScaleZ = 0.3f;
-        float arm2TranslateX = -0.5f - (arm2ScaleX / 2.0f);
-        float arm2TranslateY = 0.5f - (armScaleY / 2.0f); 
+        float arm2TranslateX = -0.6f - (arm2ScaleX / 2.0f);
+        float arm2TranslateY = (armScaleY / 2.0f);
         std::array<float, 16> arm2TranslateXMatrix = Matrix::createTranslationX(arm2TranslateX);
         std::array<float, 16> arm2TranslateYMatrix = Matrix::createTranslationY(arm2TranslateY);
         std::array<float, 16> arm2Translate = Matrix::multiply(arm2TranslateYMatrix, arm2TranslateXMatrix);
         std::array<float, 16> arm2Scale = Matrix::createScale(arm2ScaleX, arm2ScaleY, arm2ScaleZ);
         std::array<float, 16> arm2RotationX = Matrix::createRotationX(-45.0f);
-        std::array<float, 16> arm2Local = Matrix::multiply(Matrix::multiply(arm2Translate, arm2RotationX), arm2Scale);
-        std::array<float, 16> arm2Model = Matrix::multiply(torsoModel, arm2Local);
+        std::array<float, 16> arm2ScaledAndRotated = Matrix::multiply(arm2RotationX, arm2Scale);
+        std::array<float, 16> arm2Local = Matrix::multiply(arm2Translate, arm2ScaledAndRotated);
+        std::array<float, 16> arm2Model = Matrix::multiply(torsoTransform, arm2Local);
         std::array<float, 16> mvpArm2 = Matrix::multiply(Matrix::multiply(projection, view), arm2Model);
         myShader.setMat4("u_MVP", mvpArm2);
         myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
@@ -137,7 +141,8 @@ int main(int argc, char **argv)
         std::array<float, 16> forearm2Translate = Matrix::createTranslationY(forearm2TranslateY);
         std::array<float, 16> forearm2Scale = Matrix::createScale(forearm2ScaleX, forearm2ScaleY, forearm2ScaleZ);
         std::array<float, 16> forearm2RotationX = Matrix::createRotationX(0.0f);
-        std::array<float, 16> forearm2Local = Matrix::multiply(Matrix::multiply(forearm2Translate, forearm2RotationX), forearm2Scale);
+        std::array<float, 16> forearm2ScaledAndRotated = Matrix::multiply(forearm2RotationX, forearm2Scale);
+        std::array<float, 16> forearm2Local = Matrix::multiply(forearm2Translate, forearm2ScaledAndRotated);
         std::array<float, 16> forearm2Model = Matrix::multiply(arm2Model, forearm2Local);
         std::array<float, 16> mvpForearm2 = Matrix::multiply(Matrix::multiply(projection, view), forearm2Model);
         myShader.setMat4("u_MVP", mvpForearm2);
