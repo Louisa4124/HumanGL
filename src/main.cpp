@@ -6,22 +6,24 @@
 #include "../include/Geometry.hpp"
 #include "../include/Shader.hpp"
 #include "../include/Matrix.hpp"
+#include "internal.h"
+#include "utils.h"
+#include "glfw.h"
 
 int main(int argc, char **argv)
 {
-    if (!glfwInit())
-        return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // rcode ret;
+    GLFWwindow *window ;
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "HumanGL", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
+    if (initGlfw() != OK) {
+        return 1;
     }
-    glfwMakeContextCurrent(window);
+
+    window = initWindow(800, 600, "HumanGL");
+    if (!window) {
+        utils::err("Failed to create window.");
+        return 1;
+    }
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -33,7 +35,7 @@ int main(int argc, char **argv)
     Shader myShader("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
 
     utils::Geometry torso("cube");
-    
+
     glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
@@ -54,7 +56,7 @@ int main(int argc, char **argv)
         // le torse
         float torsoScaleY = 2.0f;
         std::array<float, 16> torsoScale = Matrix::createScale(1.2f, torsoScaleY, 0.6f);
-        std::array<float, 16> torsoModel = Matrix::multiply(modelRoot, torsoScale); 
+        std::array<float, 16> torsoModel = Matrix::multiply(modelRoot, torsoScale);
         std::array<float, 16> mvpTorse = Matrix::multiply(Matrix::multiply(projection, view), torsoModel);
         myShader.setMat4("u_MVP", mvpTorse);
         myShader.setVec4("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
@@ -65,8 +67,8 @@ int main(int argc, char **argv)
         // la tete : enfant du torse
         float headScaleY = 0.4f;
         float calculatedTranslateY = (1.0f / torsoScaleY) + (headScaleY / 2.0f);
-        std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY); 
-        std::array<float, 16> headScale = Matrix::createScale(0.6f, headScaleY, 0.6f);// mise a lechel : la tete plus petite  
+        std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY);
+        std::array<float, 16> headScale = Matrix::createScale(0.6f, headScaleY, 0.6f);// mise a lechel : la tete plus petite
         std::array<float, 16> headLocal = Matrix::multiply(headTranslate, headScale);
         std::array<float, 16> headModel = Matrix::multiply(torsoModel, headLocal);
         std::array<float, 16> mvpHead = Matrix::multiply(Matrix::multiply(projection, view), headModel);
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
         float armScaleY = 0.5f;
         float armScaleZ = 0.3f;
         float armTranslateX = 0.5f + (armScaleX / 2.0f);
-        float armTranslateY = 0.5f - (armScaleY / 2.0f); 
+        float armTranslateY = 0.5f - (armScaleY / 2.0f);
         std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
         std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
         std::array<float, 16> armTranslate = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
@@ -115,7 +117,7 @@ int main(int argc, char **argv)
         float arm2ScaleY = 0.5f;
         float arm2ScaleZ = 0.3f;
         float arm2TranslateX = -0.5f - (arm2ScaleX / 2.0f);
-        float arm2TranslateY = 0.5f - (armScaleY / 2.0f); 
+        float arm2TranslateY = 0.5f - (armScaleY / 2.0f);
         std::array<float, 16> arm2TranslateXMatrix = Matrix::createTranslationX(arm2TranslateX);
         std::array<float, 16> arm2TranslateYMatrix = Matrix::createTranslationY(arm2TranslateY);
         std::array<float, 16> arm2Translate = Matrix::multiply(arm2TranslateYMatrix, arm2TranslateXMatrix);
