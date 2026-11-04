@@ -2,7 +2,7 @@ NAME        = HumanGL
 CC          = g++
 CFLAGS      = -Wall -std=c++17
 # CFLAGS      = -Wall -Wextra -Werror -std=c++17
-IFLAGS		= -Iinclude/utils
+IFLAGS		= -Iinclude
 
 SRC_DIR     = src
 INC_DIR     = include
@@ -31,7 +31,7 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re run rerun
 
 run: $(NAME)
 	./$(NAME)
@@ -39,5 +39,5 @@ run: $(NAME)
 rerun: re
 	./$(NAME)
 
-e:
-	@echo "src : $(SRC)"
+format:
+	clang-format -i $(SRC)
