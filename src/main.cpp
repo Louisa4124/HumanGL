@@ -2,6 +2,7 @@
 #include "../include/Geometry.hpp"
 #include "../include/Matrix.hpp"
 #include "../include/Shader.hpp"
+#include "Object.hpp"
 #include "glfw.h"
 #include "internal.h"
 #include "utils.h"
@@ -86,6 +87,9 @@ int main(int argc, char** argv)
         std::array<float, 16> torsoModel = Matrix::multiply(torsoTransform, torsoScale);
         std::array<float, 16> mvpTorse
             = Matrix::multiply(Matrix::multiply(projection, view), torsoModel);
+
+        Object otto;
+
         myShader.setMat4("u_MVP", mvpTorse);
         myShader.setVec4("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
 

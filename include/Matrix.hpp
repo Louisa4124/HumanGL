@@ -3,10 +3,8 @@
 
 #include <array>
 
-typedef struct {
-  float data[16];
+typedef std::array<float, 16> mat4;
 
-} mat4;
 
 class Matrix
 {
