@@ -16,7 +16,7 @@
 const float WIDTH  = 800.0f;
 const float HEIGHT = 600.0f;
 
-e_state g_state_anim = IDLE;
+e_state g_state_anim = JUMPING;
 
 int main(int argc, char** argv)
 {
@@ -91,45 +91,25 @@ int main(int argc, char** argv)
 // NOLINT
 
         Object head(hsc, vec4{ 1.0, 0.8, 0.6, 1.0 }, headTranslate);
+
         head.Head(otto.transform);
 
         myShader.setMat4("u_MVP", head.MVP(pv));
         myShader.setVec4("u_Color", head.color);
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
-        // std::cout << "expect: \n" << mvpHead;
-        // std::cout << "got: \n" << head.MVP(pv);
-        // assert(head.MVP(pv) == mvpHead);
-
         // le bras : enfant du torse
         Object arm1(vec3{ 0.3, 1.1, 0.3 }, vec4{ 1.0, 0.8, 0.6, 1.0 }, modelRoot);
 
-        float                 armTranslateX       = (otto.scale.x / 2.0f) + (arm1.scale.x / 2.0f);
-        float                 armTranslateY       = (otto.scale.y / 2.0f);
-        std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
-        std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
-        std::array<float, 16> armTranslate
-            = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
-        std::array<float, 16> armScale
-            = Matrix::createScale(arm1.scale.x, arm1.scale.y, arm1.scale.z);
-        std::array<float, 16> armOffset = Matrix::createTranslationY(-arm1.scale.y / 2.0f);
-        float                 armSwingAngle
-            = (g_state_anim == RUNNING) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
-        std::array<float, 16> armRotationX = Matrix::createRotationX(armSwingAngle);
-        std::array<float, 16> armRotationZ
-            = Matrix::createRotationX((g_state_anim == SIX_SEVENNING) ? -25.0f : 0.0f);
-        std::array<float, 16> armJoint = Matrix::multiply(
-            otto.transform,
-            Matrix::multiply(armTranslate, Matrix::multiply(armRotationZ, armRotationX))
-        );
-        std::array<float, 16> armScaledAndRotated = Matrix::multiply(armOffset, armScale);
-        std::array<float, 16> armModel            = Matrix::multiply(armJoint, armScaledAndRotated);
-        std::array<float, 16> mvpArm
-            = Matrix::multiply(Matrix::multiply(projection, view), armModel);
-        myShader.setMat4("u_MVP", mvpArm);
-        myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
+        arm1.Arm(otto.transform, otto.scale);
 
+        myShader.setMat4("u_MVP", arm1.MVP(pv));
+        myShader.setVec4("u_Color", arm1.color);
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+        // std::cout << "expect: \n" << mvpArm;
+        // std::cout << "got: \n" << arm1.MVP(pv);
+        // assert(arm1.MVP(pv) == mvpArm);
 
         // l'avant-bras : enfant du bras
         // Object forearm1(arm1.scale, vec4{}, modelRoot, pv);
@@ -140,7 +120,7 @@ int main(int argc, char** argv)
         float                 forearmTranslateY = -forearmScaleY / 2.0f;
         std::array<float, 16> forearmTranslate  = Matrix::createTranslationY(forearmTranslateY);
         std::array<float, 16> elbowTranslate    = Matrix::createTranslationY(-arm1.scale.y);
-        std::array<float, 16> elbowJoint        = Matrix::multiply(armJoint, elbowTranslate);
+        std::array<float, 16> elbowJoint        = Matrix::multiply(arm1.jointed, elbowTranslate);
         std::array<float, 16> forearmScale
             = Matrix::createScale(forearmScaleX, forearmScaleY, forearmScaleZ);
         float forearmSwingAngle = (g_state_anim == SIX_SEVENNING)

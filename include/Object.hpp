@@ -13,6 +13,7 @@ class Object
     vec4 color;
     mat4 transform;
     mat4 scaleMat;
+    mat4 jointed;
     mat4 model;
     mat4 mvp;
 
@@ -24,7 +25,7 @@ class Object
 
     void Torso(void);
     void Head(mat4 mother);
-    void Arm(mat4 mother);
+    void Arm(mat4 mother, vec3 motherScale);
     void ForeArm(mat4 mother);
     void Leg(mat4 mother);
 };
