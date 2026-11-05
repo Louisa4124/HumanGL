@@ -22,7 +22,11 @@ class Object
 
     mat4 MVP(mat4 pv);
 
+    void Torso(void);
     void Head(mat4 mother);
+    void Arm(mat4 mother);
+    void ForeArm(mat4 mother);
+    void Leg(mat4 mother);
 };
 
 #endif

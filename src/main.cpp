@@ -76,6 +76,8 @@ int main(int argc, char** argv)
         // le torse
         Object otto(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0, 0.5, 0.2, 1.0 }, modelRoot);
 
+        otto.Torso();
+
         myShader.setMat4("u_MVP", otto.MVP(pv));
         myShader.setVec4("u_Color", otto.color);
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
@@ -89,24 +91,15 @@ int main(int argc, char** argv)
 // NOLINT
 
         Object head(hsc, vec4{ 1.0, 0.8, 0.6, 1.0 }, headTranslate);
-
-        // diff: la head translate
-        mat4 headLocal = Matrix::multiply(headTranslate, head.scaleMat);
-
-
-
-        // mvp from local
-        mat4 headModel = Matrix::multiply(otto.transform, headLocal);
         head.Head(otto.transform);
-        mat4 mvpHead   = Matrix::multiply(pv, headModel);
+
+        myShader.setMat4("u_MVP", head.MVP(pv));
+        myShader.setVec4("u_Color", head.color);
+        glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // std::cout << "expect: \n" << mvpHead;
         // std::cout << "got: \n" << head.MVP(pv);
         // assert(head.MVP(pv) == mvpHead);
-
-        myShader.setMat4("u_MVP", mvpHead);
-        myShader.setVec4("u_Color", head.color);
-        glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // le bras : enfant du torse
         Object arm1(vec3{ 0.3, 1.1, 0.3 }, vec4{ 1.0, 0.8, 0.6, 1.0 }, modelRoot);
