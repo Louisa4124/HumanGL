@@ -5,16 +5,24 @@
 
 class Object
 {
+  private:
+    mat4 localModel;
+
   public:
     vec3 scale;
     vec4 color;
     mat4 transform;
+    mat4 scaleMat;
     mat4 model;
     mat4 mvp;
 
     Object(void);
-    Object(vec3 scv, vec4 color, mat4 rootModel, mat4 pv);
+    Object(vec3 scv, vec4 color, mat4 rootModel);
     ~Object(void);
+
+    mat4 MVP(mat4 pv);
+
+    void Head(mat4 mother);
 };
 
 #endif

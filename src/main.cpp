@@ -32,22 +32,27 @@ int main(int argc, char** argv)
 
     glEnable(GL_DEPTH_TEST);
 
+    // config commune a tout le model
+    const mat4  projection = Matrix::createPerspective(45.0f, WIDTH / HEIGHT, 0.1f, 100.0f);
+    const mat4  view       = Matrix::createTranslationZ(-7.0f);   // on dezoom un peu !
+    const mat4  pv         = Matrix::multiply(projection, view);
+    const float angle      = 10.0f;
+
+    const mat4 modelRotation = Matrix::createRotationY(angle);
+    const mat4 modelScale    = Matrix::createScale(1.0, 1.0, 1.0);
+
     while (!glfwWindowShouldClose(window))
     {
         utils::glClearColorHex(0x000000);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         myShader.use();
+        torso.bind();
 
-        // config commune a tout le model
-        std::array<float, 16> projection
-            = Matrix::createPerspective(45.0f, WIDTH / HEIGHT, 0.1f, 100.0f);
-        std::array<float, 16> view      = Matrix::createTranslationZ(-7.0f);   // on dezoom un peu !
-        mat4                  pv        = Matrix::multiply(projection, view);
-        float                 angle     = 10.0f;
-        float                 jumpCycle = std::fmod(glfwGetTime(), 2.5f);
-        float                 jumpHeight   = 0.0f;
-        float                 jumpKneeBend = 0.0f;
+        // jump !!
+        const float jumpCycle    = std::fmod(glfwGetTime(), 2.5f);
+        float       jumpHeight   = 0.0f;
+        float       jumpKneeBend = 0.0f;
 
         if (g_state_anim == JUMPING)
         {
@@ -61,53 +66,60 @@ int main(int argc, char** argv)
             }
         }
 
-        std::array<float, 16> modelRotation   = Matrix::createRotationY(angle);
-        std::array<float, 16> modelScale      = Matrix::createScale(1.0f, 1.0f, 1.0f);
-        std::array<float, 16> jumpTranslation = Matrix::createTranslationY(jumpHeight);
-        std::array<float, 16> modelRoot
+        const mat4 jumpTranslation = Matrix::createTranslationY(jumpHeight);
+
+        // root model matrice
+        const mat4 modelRoot
             = Matrix::multiply(jumpTranslation, Matrix::multiply(modelRotation, modelScale));
 
+        // element
         // le torse
-        Object otto(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0f, 0.5f, 0.2f, 1.0f }, modelRoot, pv);
+        Object otto(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0, 0.5, 0.2, 1.0 }, modelRoot);
 
-        myShader.setMat4("u_MVP", otto.mvp);
+        myShader.setMat4("u_MVP", otto.MVP(pv));
         myShader.setVec4("u_Color", otto.color);
-
-        torso.bind();
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // la tete : enfant du torse
-        float                 headScaleX           = 0.7f;
-        float                 headScaleY           = 0.7f;
-        float                 headScaleZ           = 0.7f;
-        float                 calculatedTranslateY = (otto.scale.y / 2) + (headScaleY / 2.0f);
-        std::array<float, 16> headTranslate = Matrix::createTranslationY(calculatedTranslateY);
-        std::array<float, 16> headScale     = Matrix::createScale(
-            headScaleX,
-            headScaleY,
-            headScaleZ
-        );   // mise a lechel : la tete plus petite
-        std::array<float, 16> headLocal = Matrix::multiply(headTranslate, headScale);
-        std::array<float, 16> headModel = Matrix::multiply(otto.transform, headLocal);
-        std::array<float, 16> mvpHead
-            = Matrix::multiply(Matrix::multiply(projection, view), headModel);
-        myShader.setMat4("u_MVP", mvpHead);
-        myShader.setVec4("u_Color", 1.0f, 0.8f, 0.6f, 1.0f);
+        vec3 hsc{ 0.7, 0.7, 0.7 };
 
+// NOLINT: should go in head construct before parent cons?
+       float calculatedTranslateY = (otto.scale.y / 2) + (hsc.y / 2.0f);
+        mat4 headTranslate = Matrix::createTranslationY(calculatedTranslateY);
+// NOLINT
+
+        Object head(hsc, vec4{ 1.0, 0.8, 0.6, 1.0 }, headTranslate);
+
+        // diff: la head translate
+        mat4 headLocal = Matrix::multiply(headTranslate, head.scaleMat);
+
+
+
+        // mvp from local
+        mat4 headModel = Matrix::multiply(otto.transform, headLocal);
+        head.Head(otto.transform);
+        mat4 mvpHead   = Matrix::multiply(pv, headModel);
+
+        // std::cout << "expect: \n" << mvpHead;
+        // std::cout << "got: \n" << head.MVP(pv);
+        // assert(head.MVP(pv) == mvpHead);
+
+        myShader.setMat4("u_MVP", mvpHead);
+        myShader.setVec4("u_Color", head.color);
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // le bras : enfant du torse
-        float                 armScaleX           = 0.3f;
-        float                 armScaleY           = 1.1f;
-        float                 armScaleZ           = 0.3f;
-        float                 armTranslateX       = (otto.scale.z / 2.0f) + (armScaleX / 2.0f);
+        Object arm1(vec3{ 0.3, 1.1, 0.3 }, vec4{ 1.0, 0.8, 0.6, 1.0 }, modelRoot);
+
+        float                 armTranslateX       = (otto.scale.x / 2.0f) + (arm1.scale.x / 2.0f);
         float                 armTranslateY       = (otto.scale.y / 2.0f);
         std::array<float, 16> armTranslateXMatrix = Matrix::createTranslationX(armTranslateX);
         std::array<float, 16> armTranslateYMatrix = Matrix::createTranslationY(armTranslateY);
         std::array<float, 16> armTranslate
             = Matrix::multiply(armTranslateYMatrix, armTranslateXMatrix);
-        std::array<float, 16> armScale  = Matrix::createScale(armScaleX, armScaleY, armScaleZ);
-        std::array<float, 16> armOffset = Matrix::createTranslationY(-armScaleY / 2.0f);
+        std::array<float, 16> armScale
+            = Matrix::createScale(arm1.scale.x, arm1.scale.y, arm1.scale.z);
+        std::array<float, 16> armOffset = Matrix::createTranslationY(-arm1.scale.y / 2.0f);
         float                 armSwingAngle
             = (g_state_anim == RUNNING) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
         std::array<float, 16> armRotationX = Matrix::createRotationX(armSwingAngle);
@@ -127,12 +139,14 @@ int main(int argc, char** argv)
         glDrawElements(GL_TRIANGLES, torso.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // l'avant-bras : enfant du bras
-        float                 forearmScaleX     = armScaleX;
-        float                 forearmScaleY     = armScaleY;
-        float                 forearmScaleZ     = armScaleZ;
+        // Object forearm1(arm1.scale, vec4{}, modelRoot, pv);
+
+        float                 forearmScaleX     = arm1.scale.x;
+        float                 forearmScaleY     = arm1.scale.y;
+        float                 forearmScaleZ     = arm1.scale.z;
         float                 forearmTranslateY = -forearmScaleY / 2.0f;
         std::array<float, 16> forearmTranslate  = Matrix::createTranslationY(forearmTranslateY);
-        std::array<float, 16> elbowTranslate    = Matrix::createTranslationY(-armScaleY);
+        std::array<float, 16> elbowTranslate    = Matrix::createTranslationY(-arm1.scale.y);
         std::array<float, 16> elbowJoint        = Matrix::multiply(armJoint, elbowTranslate);
         std::array<float, 16> forearmScale
             = Matrix::createScale(forearmScaleX, forearmScaleY, forearmScaleZ);
