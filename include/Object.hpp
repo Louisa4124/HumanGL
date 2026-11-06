@@ -8,9 +8,10 @@ class Object
   protected:
     const Object* mother;
 
-    mat4 localModel;
 
   public:
+    mat4 localModel;
+
     vec3 scale;
     vec4 color;
     mat4 transform;

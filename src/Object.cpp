@@ -3,10 +3,8 @@
 #include "Vector.hpp"
 #include "internal.hpp"
 #include <GLFW/glfw3.h>
-#include <cmath>
 #include <cstring>
 
-extern e_state g_state_anim;
 
 Object::Object(void) {};
 Object::~Object(void) {};

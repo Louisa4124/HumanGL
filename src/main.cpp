@@ -48,10 +48,12 @@ int main(void)
 
     // scale
     vec3 legSc{ 0.35, 0.9, 0.35 };
+
     // colors
     vec4 armColor{ 1.0, 0.8, 0.6, 1.0 };
     vec4 foreArmColor{ 0.9, 0.7, 0.5, 1.0 };
-    vec4 upLegColor{0.2f, 0.4f, 0.8f, 1.0f};
+    vec4 upLegColor{ 0.2f, 0.4f, 0.8f, 1.0f };
+    vec4 lowLegColor{ 0.1, 0.3, 0.7, 1.0 };
 
     while (!glfwWindowShouldClose(window))
     {
@@ -83,10 +85,6 @@ int main(void)
         // root model matrice
         const mat4 modelRoot
             = Matrix::multiply(jumpTranslation, Matrix::multiply(modelRotation, modelScale));
-
-        // std::cout << "expect: \n" << objArm1.model;
-        // std::cout << "got: \n" << arm1.model;
-        // assert(objArm1.model == arm1.model);
 
         // elements
         // le torse
@@ -134,92 +132,30 @@ int main(void)
 
         // 1ere jambe (haut de jambe) : enfant du torse
         UpperLeg uLeg1(legSc, upLegColor, LEFT, objTorso);
-        float    legScaleX           = 0.35f;
-        float    legScaleY           = 0.9f;
-        float    legScaleZ           = 0.35f;
-        float    legTranslateX       = 0.3f;
-        float    legTranslateY       = -(objTorso.scale.y / 2.0f);
-        mat4     legTranslateXMatrix = Matrix::createTranslationX(legTranslateX);
-        mat4     legTranslateYMatrix = Matrix::createTranslationY(legTranslateY);
-        mat4     legTranslate        = Matrix::multiply(legTranslateYMatrix, legTranslateXMatrix);
-        mat4     legScale            = Matrix::createScale(legScaleX, legScaleY, legScaleZ);
-        mat4     legOffset           = Matrix::createTranslationY(-legScaleY / 2.0f);
-        float    legSwingAngle       = (g_state_anim == RUNNING)
-                                           ? (std::sin(glfwGetTime() * 5.0f + 3.14159f) * 30.0f)
-                                           : 0.0f;
-        float    legHipAngle         = legSwingAngle - (jumpKneeBend * 0.4f);
-        mat4     legRotationX        = Matrix::createRotationX(legHipAngle);
-        mat4     legJoint
-            = Matrix::multiply(objTorso.transform, Matrix::multiply(legTranslate, legRotationX));
-        mat4 legScaledAndRotated = Matrix::multiply(legOffset, legScale);
-        mat4 legModel            = Matrix::multiply(legJoint, legScaledAndRotated);
-        mat4 mvpLeg              = Matrix::multiply(Matrix::multiply(projection, view), legModel);
-        myShader.setMat4("u_MVP", mvpLeg);
-        myShader.setVec4("u_Color", 0.2f, 0.4f, 0.8f, 1.0f);
-
+        uLeg1.Update(jumpKneeBend);
+        myShader.setMat4("u_MVP", uLeg1.MVP(pv));
+        myShader.setVec4("u_Color", uLeg1.color);
         glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // 1er bas de jambe : enfant du haut de jambe
-        float shinScaleX     = legScaleX;
-        float shinScaleY     = 1.0f;
-        float shinScaleZ     = legScaleZ;
-        float shinTranslateY = -shinScaleY / 2.0f;
-        mat4  shinTranslate  = Matrix::createTranslationY(shinTranslateY);
-        mat4  kneeTranslate  = Matrix::createTranslationY(-legScaleY);
-        mat4  kneeJoint      = Matrix::multiply(legJoint, kneeTranslate);
-        mat4  shinScale      = Matrix::createScale(shinScaleX, shinScaleY, shinScaleZ);
-        mat4  shinRotationX  = Matrix::createRotationX(jumpKneeBend * 0.8f);
-        mat4  shinScaledAndRotated
-            = Matrix::multiply(shinRotationX, Matrix::multiply(shinTranslate, shinScale));
-        mat4 shinModel = Matrix::multiply(kneeJoint, shinScaledAndRotated);
-        mat4 mvpShin   = Matrix::multiply(Matrix::multiply(projection, view), shinModel);
-        myShader.setMat4("u_MVP", mvpShin);
-        myShader.setVec4("u_Color", 0.1f, 0.3f, 0.7f, 1.0f);
-
+        LowerLeg lleg1(uLeg1.scale, lowLegColor, LEFT, uLeg1);
+        lleg1.Update(jumpKneeBend);
+        myShader.setMat4("u_MVP", lleg1.MVP(pv));
+        myShader.setVec4("u_Color", lleg1.color);
         glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // 2e jambe (haut de jambe) : enfant du torse
-        float leg2ScaleX           = 0.35f;
-        float leg2ScaleY           = 0.9f;
-        float leg2ScaleZ           = 0.35f;
-        float leg2TranslateX       = -0.3f;
-        float leg2TranslateY       = -(objTorso.scale.y / 2.0f);
-        mat4  leg2TranslateXMatrix = Matrix::createTranslationX(leg2TranslateX);
-        mat4  leg2TranslateYMatrix = Matrix::createTranslationY(leg2TranslateY);
-        mat4  leg2Translate        = Matrix::multiply(leg2TranslateYMatrix, leg2TranslateXMatrix);
-        mat4  leg2Scale            = Matrix::createScale(leg2ScaleX, leg2ScaleY, leg2ScaleZ);
-        mat4  leg2Offset           = Matrix::createTranslationY(-leg2ScaleY / 2.0f);
-        float leg2SwingAngle
-            = (g_state_anim == RUNNING) ? (std::sin(glfwGetTime() * 5.0f) * 30.0f) : 0.0f;
-        float leg2HipAngle  = leg2SwingAngle - (jumpKneeBend * 0.4f);
-        mat4  leg2RotationX = Matrix::createRotationX(leg2HipAngle);
-        mat4  leg2Joint
-            = Matrix::multiply(objTorso.transform, Matrix::multiply(leg2Translate, leg2RotationX));
-        mat4 leg2ScaledAndRotated = Matrix::multiply(leg2Offset, leg2Scale);
-        mat4 leg2Model            = Matrix::multiply(leg2Joint, leg2ScaledAndRotated);
-        mat4 mvpLeg2              = Matrix::multiply(Matrix::multiply(projection, view), leg2Model);
-        myShader.setMat4("u_MVP", mvpLeg2);
-        myShader.setVec4("u_Color", 0.2f, 0.4f, 0.8f, 1.0f);
-
+        UpperLeg uLeg2(legSc, upLegColor, RIGHT, objTorso);
+        uLeg2.Update(jumpKneeBend);
+        myShader.setMat4("u_MVP", uLeg2.MVP(pv));
+        myShader.setVec4("u_Color", uLeg2.color);
         glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         // 2e bas de jambe : enfant du 2e haut de jambe
-        float shin2ScaleX     = leg2ScaleX;
-        float shin2ScaleY     = 1.0f;
-        float shin2ScaleZ     = leg2ScaleZ;
-        float shin2TranslateY = -shin2ScaleY / 2.0f;
-        mat4  shin2Translate  = Matrix::createTranslationY(shin2TranslateY);
-        mat4  knee2Translate  = Matrix::createTranslationY(-leg2ScaleY);
-        mat4  knee2Joint      = Matrix::multiply(leg2Joint, knee2Translate);
-        mat4  shin2Scale      = Matrix::createScale(shin2ScaleX, shin2ScaleY, shin2ScaleZ);
-        mat4  shin2RotationX  = Matrix::createRotationX(jumpKneeBend * 0.8f);
-        mat4  shin2ScaledAndRotated
-            = Matrix::multiply(shin2RotationX, Matrix::multiply(shin2Translate, shin2Scale));
-        mat4 shin2Model = Matrix::multiply(knee2Joint, shin2ScaledAndRotated);
-        mat4 mvpShin2   = Matrix::multiply(Matrix::multiply(projection, view), shin2Model);
-        myShader.setMat4("u_MVP", mvpShin2);
-        myShader.setVec4("u_Color", 0.1f, 0.3f, 0.7f, 1.0f);
-
+        LowerLeg lleg2(uLeg2.scale, lowLegColor, LEFT, uLeg2);
+        lleg2.Update(jumpKneeBend);
+        myShader.setMat4("u_MVP", lleg2.MVP(pv));
+        myShader.setVec4("u_Color", lleg2.color);
         glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
 
         baseCube.unbind();

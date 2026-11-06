@@ -14,5 +14,5 @@ class LowerLeg : public Object
 
     LowerLeg(vec3 scv, vec4 clv, e_side side, const Object& mother);
 
-    void Update(void);
+    void Update(float kneeBend);
 };
