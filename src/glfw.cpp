@@ -1,5 +1,5 @@
-#include "internal.h"
-#include "utils.h"
+#include "internal.hpp"
+#include "utils.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>

@@ -1,7 +1,7 @@
 #include "Matrix.hpp"
 #include "Object.hpp"
 #include "Vector.hpp"
-#include "internal.h"
+#include "internal.hpp"
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <cstring>
