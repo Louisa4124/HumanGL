@@ -23,4 +23,11 @@ typedef enum
     SIX_SEVENNING,
 } e_state;
 
+typedef enum
+{
+    RIGHT,
+    LEFT,
+
+} e_side;
+
 #endif

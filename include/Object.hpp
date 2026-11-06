@@ -5,7 +5,9 @@
 
 class Object
 {
-  private:
+  protected:
+    const Object* mother;
+
     mat4 localModel;
 
   public:
@@ -19,15 +21,10 @@ class Object
 
     Object(void);
     Object(vec3 scv, vec4 color, mat4 rootModel);
+    Object(vec3 scv, vec4 color, const Object& mother);
     ~Object(void);
 
     mat4 MVP(mat4 pv);
-
-    void Torso(void);
-    void Head(mat4 mother);
-    void Arm(mat4 mother, vec3 motherScale);
-    void ForeArm(mat4 mother);
-    void Leg(mat4 mother);
 };
 
 #endif
