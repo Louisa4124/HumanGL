@@ -9,7 +9,7 @@
 Object::Object(void) {};
 Object::~Object(void) {};
 
-Object::Object(vec3 scv, vec4 cols, mat4 rootModel) : mother(nullptr), transform(rootModel)
+Object::Object(vec3 scv, vec4 cols) : mother(nullptr)
 {
     std::memcpy(&scale, &scv, sizeof(vec3));
     std::memcpy(&color, &cols, sizeof(vec4));

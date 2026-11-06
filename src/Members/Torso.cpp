@@ -8,10 +8,11 @@ extern e_state g_state_anim;
 Torso::Torso() {};
 Torso::~Torso() {};
 
-Torso::Torso(vec3 scv, vec4 clv, mat4 rMod) : Object(scv, clv, rMod)
+Torso::Torso(vec3 scv, vec4 clv) : Object(scv, clv)
 {
-    scaleMat   = Matrix::createScale(scv.x, scv.y, scv.z);
-    localModel = Matrix::multiply(transform, scaleMat);
 };
 
-void Torso::Update(void) { model = localModel; };
+void Torso::Update(mat4 rMod) {
+    model = Matrix::multiply(rMod, scaleMat);
+    transform = rMod;
+};

@@ -10,7 +10,7 @@ class Torso : public Object
   public:
     ~Torso(void);
 
-    Torso(vec3 scv, vec4 clv, mat4 rMod);
+    Torso(vec3 scv, vec4 clvd);
 
-    void Update(void);
+    void Update(mat4 rMod);
 };

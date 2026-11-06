@@ -55,6 +55,9 @@ int main(void)
     vec4 upLegColor{ 0.2f, 0.4f, 0.8f, 1.0f };
     vec4 lowLegColor{ 0.1, 0.3, 0.7, 1.0 };
 
+    // element
+    Torso objTorso(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0, 0.5, 0.2, 1.0 });
+
     while (!glfwWindowShouldClose(window))
     {
         utils::glClearColorHex(0x000000);
@@ -88,8 +91,7 @@ int main(void)
 
         // elements
         // le torse
-        Torso objTorso(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0, 0.5, 0.2, 1.0 }, modelRoot);
-        objTorso.Update();
+        objTorso.Update(modelRoot);
         myShader.setMat4("u_MVP", objTorso.MVP(pv));
         myShader.setVec4("u_Color", objTorso.color);
         glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);

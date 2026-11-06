@@ -21,7 +21,7 @@ class Object
     mat4 mvp;
 
     Object(void);
-    Object(vec3 scv, vec4 color, mat4 rootModel);
+    Object(vec3 scv, vec4 colorl);
     Object(vec3 scv, vec4 color, const Object& mother);
     ~Object(void);
 
