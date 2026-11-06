@@ -1,3 +1,2 @@
 [tools]
 clang-format = "23"
-clangd = "latest"

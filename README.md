@@ -7,6 +7,17 @@ HumanGL est une introduction pratique à la modélisation hiérarchique en OpenG
 
 # Instructions
 
+Compilation et lancement:
+```shell
+make run
+```
+## Contrôles
+
+Changer d'animation: `1`,`2`,`3`
+Tourner le modèle: `→`, `←`
+
+_Ne pas toucher aux touches `6` et `7`!!!_
+
 # Fonctionnement
 
 ## La Modélisation Hiérarchique

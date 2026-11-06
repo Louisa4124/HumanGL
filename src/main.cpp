@@ -11,17 +11,22 @@
 #include "Vector.hpp"
 #include "glfw.hpp"
 #include "internal.hpp"
-#include "utils.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <assert.h>
 #include <cmath>
-#include <iostream>
 
-const float WIDTH  = 800.0f;
-const float HEIGHT = 600.0f;
+const float WIDTH  = 800.0;
+const float HEIGHT = 600.0;
 
 e_state g_state_anim = RUNNING;
+float   g_angleY      = 10.0;
+
+void draw(Shader& myShader, utils::Geometry& geo, mat4 mvp, vec4 color)
+{
+    myShader.setMat4("u_MVP", mvp);
+    myShader.setVec4("u_Color", color);
+    glDrawElements(GL_TRIANGLES, geo.getIndexCount(), GL_UNSIGNED_INT, 0);
+}
 
 int main(void)
 {
@@ -38,25 +43,32 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     // config commune a tout le model
-    const mat4  projection = Matrix::createPerspective(45.0f, WIDTH / HEIGHT, 0.1f, 100.0f);
-    const mat4  view       = Matrix::createTranslationZ(-7.0f);   // on dezoom un peu !
-    const mat4  pv         = Matrix::multiply(projection, view);
-    const float angle      = 10.0f;
-
-    const mat4 modelRotation = Matrix::createRotationY(angle);
-    const mat4 modelScale    = Matrix::createScale(1.0, 1.0, 1.0);
+    const mat4 projection = Matrix::createPerspective(45.0, WIDTH / HEIGHT, 0.1, 100.0);
+    const mat4 view       = Matrix::createTranslationZ(-7.0);   // on dezoom un peu !
+    const mat4 pv         = Matrix::multiply(projection, view);
+    const mat4 modelScale = Matrix::createScale(1.0, 1.0, 1.0);
 
     // scale
-    vec3 legSc{ 0.35, 0.9, 0.35 };
+    vec3 armScale{ 0.3, 1.1, 0.3 };
+    vec3 legScale{ 0.35, 0.9, 0.35 };
 
     // colors
     vec4 armColor{ 1.0, 0.8, 0.6, 1.0 };
     vec4 foreArmColor{ 0.9, 0.7, 0.5, 1.0 };
-    vec4 upLegColor{ 0.2f, 0.4f, 0.8f, 1.0f };
+    vec4 upLegColor{ 0.2, 0.4, 0.8, 1.0 };
     vec4 lowLegColor{ 0.1, 0.3, 0.7, 1.0 };
 
     // element
-    Torso objTorso(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0, 0.5, 0.2, 1.0 });
+    Torso    torso(vec3{ 1.2, 2.0, 0.8 }, vec4{ 1.0, 0.5, 0.2, 1.0 });
+    Head     head(vec3{ 0.7, 0.7, 0.7 }, vec4{ 1.0, 0.8, 0.6, 1.0 }, torso);
+    Arm      arm1(armScale, armColor, LEFT, torso);
+    ForeArm  foreArm1(arm1.scale, foreArmColor, LEFT, arm1);
+    Arm      arm2(armScale, armColor, RIGHT, torso);
+    ForeArm  foreArm2(arm2.scale, foreArmColor, RIGHT, arm2);
+    UpperLeg upperLeg1(legScale, upLegColor, LEFT, torso);
+    LowerLeg lowerLeg1(upperLeg1.scale, lowLegColor, LEFT, upperLeg1);
+    UpperLeg upperLeg2(legScale, upLegColor, RIGHT, torso);
+    LowerLeg lowerleg2(upperLeg2.scale, lowLegColor, LEFT, upperLeg2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -86,79 +98,50 @@ int main(void)
         const mat4 jumpTranslation = Matrix::createTranslationY(jumpHeight);
 
         // root model matrice
+        const mat4 modelRoY = Matrix::createRotationY(g_angleY);
         const mat4 modelRoot
-            = Matrix::multiply(jumpTranslation, Matrix::multiply(modelRotation, modelScale));
+            = Matrix::multiply(jumpTranslation, Matrix::multiply(modelRoY, modelScale));
 
         // elements
         // le torse
-        objTorso.Update(modelRoot);
-        myShader.setMat4("u_MVP", objTorso.MVP(pv));
-        myShader.setVec4("u_Color", objTorso.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        torso.Update(modelRoot);
+        draw(myShader, baseCube, torso.MVP(pv), torso.color);
 
         // la tete : enfant du torse
-        Head objHead(vec3{ 0.7, 0.7, 0.7 }, vec4{ 1.0, 0.8, 0.6, 1.0 }, objTorso);
-        objHead.Update();
-        myShader.setMat4("u_MVP", objHead.MVP(pv));
-        myShader.setVec4("u_Color", objHead.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        head.Update();
+        draw(myShader, baseCube, head.MVP(pv), head.color);
 
         // le bras : enfant du torse
-        Arm objArm1(vec3{ 0.3, 1.1, 0.3 }, armColor, LEFT, objTorso);
-        objArm1.Update();
-        myShader.setMat4("u_MVP", objArm1.MVP(pv));
-        myShader.setVec4("u_Color", objArm1.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        arm1.Update();
+        draw(myShader, baseCube, arm1.MVP(pv), arm1.color);
 
         // l'avant-bras : enfant du bras
-        // TODO: use ref for scale
-        ForeArm objForeArm1(objArm1.scale, foreArmColor, LEFT, objArm1);
-        objForeArm1.Update();
-        myShader.setMat4("u_MVP", objForeArm1.MVP(pv));
-        myShader.setVec4("u_Color", objForeArm1.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        foreArm1.Update();
+        draw(myShader, baseCube, foreArm1.MVP(pv), foreArm1.color);
 
         // 2e bras : enfant du torse
-        Arm objArm2(vec3{ 0.3, 1.1, 0.3 }, armColor, RIGHT, objTorso);
-        objArm2.Update();
-        myShader.setMat4("u_MVP", objArm2.MVP(pv));
-        myShader.setVec4("u_Color", objArm2.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        arm2.Update();
+        draw(myShader, baseCube, arm2.MVP(pv), arm2.color);
 
         // 2e avant-bras : enfant du 2e bras
-        ForeArm objForeArm2(objArm2.scale, foreArmColor, RIGHT, objArm2);
-        objForeArm2.Update();
-        myShader.setMat4("u_MVP", objForeArm2.MVP(pv));
-        myShader.setVec4("u_Color", objForeArm2.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        foreArm2.Update();
+        draw(myShader, baseCube, foreArm2.MVP(pv), foreArm2.color);
 
         // 1ere jambe (haut de jambe) : enfant du torse
-        UpperLeg uLeg1(legSc, upLegColor, LEFT, objTorso);
-        uLeg1.Update(jumpKneeBend);
-        myShader.setMat4("u_MVP", uLeg1.MVP(pv));
-        myShader.setVec4("u_Color", uLeg1.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        upperLeg1.Update(jumpKneeBend);
+        draw(myShader, baseCube, upperLeg1.MVP(pv), upperLeg1.color);
 
         // 1er bas de jambe : enfant du haut de jambe
-        LowerLeg lleg1(uLeg1.scale, lowLegColor, LEFT, uLeg1);
-        lleg1.Update(jumpKneeBend);
-        myShader.setMat4("u_MVP", lleg1.MVP(pv));
-        myShader.setVec4("u_Color", lleg1.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        lowerLeg1.Update(jumpKneeBend);
+        draw(myShader, baseCube, lowerLeg1.MVP(pv), lowerLeg1.color);
 
         // 2e jambe (haut de jambe) : enfant du torse
-        UpperLeg uLeg2(legSc, upLegColor, RIGHT, objTorso);
-        uLeg2.Update(jumpKneeBend);
-        myShader.setMat4("u_MVP", uLeg2.MVP(pv));
-        myShader.setVec4("u_Color", uLeg2.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        upperLeg2.Update(jumpKneeBend);
+        draw(myShader, baseCube, upperLeg2.MVP(pv), upperLeg2.color);
 
         // 2e bas de jambe : enfant du 2e haut de jambe
-        LowerLeg lleg2(uLeg2.scale, lowLegColor, LEFT, uLeg2);
-        lleg2.Update(jumpKneeBend);
-        myShader.setMat4("u_MVP", lleg2.MVP(pv));
-        myShader.setVec4("u_Color", lleg2.color);
-        glDrawElements(GL_TRIANGLES, baseCube.getIndexCount(), GL_UNSIGNED_INT, 0);
+        lowerleg2.Update(jumpKneeBend);
+        draw(myShader, baseCube, lowerleg2.MVP(pv), lowerleg2.color);
 
         baseCube.unbind();
 

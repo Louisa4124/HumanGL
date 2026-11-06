@@ -1,7 +1,6 @@
 NAME        = HumanGL
 CC          = clang++
-CFLAGS      = -Wall -Wextra -std=c++17
-# CFLAGS      = -Wall -Wextra -Werror -std=c++17
+CFLAGS      = -Wall -Wextra -Werror -std=c++17
 IFLAGS      = -Iinclude -Iinclude/Members
 
 SRC_DIR     = src

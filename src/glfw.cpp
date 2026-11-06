@@ -4,7 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-extern int g_state_anim;
+extern e_state g_state_anim;
+extern float   g_angleY;
+const float    angleSpeed = 5.0;
 
 rcode initGlfw(void)
 {
@@ -22,17 +24,36 @@ rcode initGlfw(void)
 void KeyHandler(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     (void) scancode;
-    (void) action;
     (void) mods;
+
+    static int     six   = GLFW_RELEASE;
+    static int     seven = GLFW_RELEASE;
+    static e_state last  = g_state_anim;
 
     switch (key)
     {
-        case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(window, 1);
-        case GLFW_KEY_1:      g_state_anim = IDLE; break;
-        case GLFW_KEY_2:      g_state_anim = RUNNING; break;
-        case GLFW_KEY_3:      g_state_anim = JUMPING; break;
-        case GLFW_KEY_4:      g_state_anim = SIX_SEVENNING; break;
+        case GLFW_KEY_Q:
+        case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(window, 1); break;
+        case GLFW_KEY_1:
+            g_state_anim = IDLE;
+            last         = g_state_anim;
+            break;
+        case GLFW_KEY_2:
+            g_state_anim = RUNNING;
+            last         = g_state_anim;
+            break;
+        case GLFW_KEY_3:
+            g_state_anim = JUMPING;
+            last         = g_state_anim;
+            break;
+        case GLFW_KEY_6:     six = action; break;
+        case GLFW_KEY_7:     seven = action; break;
+        case GLFW_KEY_LEFT:  g_angleY -= angleSpeed; break;
+        case GLFW_KEY_RIGHT: g_angleY += angleSpeed; break;
     }
+
+    if (six != GLFW_RELEASE && seven != GLFW_RELEASE) { g_state_anim = SIX_SEVENNING; }
+    else g_state_anim = last;
 }
 
 GLFWwindow* createWindow(int width, int height, const char* name)
